@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v5";
+const STORAGE_KEY = "gartentagebuch.v6";
 const $ = id => document.getElementById(id);
 
 class HarvestEntry {
@@ -60,6 +60,7 @@ class GardenEntry {
   get expectedMax(){ return this.aliveCount*this.yieldMax; }
   get actualHarvestTotal(){ return this.harvests.reduce((s,h)=>s+Number(h.amount||0),0); }
   get openHarvest(){ return Math.max(0, this.expectedMed-this.actualHarvestTotal); }
+  get percentReached(){ return this.expectedMed ? Math.round((this.actualHarvestTotal / this.expectedMed) * 100) : 0; }
 }
 
 let entries = loadEntries().map(e => new GardenEntry(e));
@@ -69,6 +70,11 @@ let selectedEntryId = "";
 function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
+
+  // Migration aus v5, damit deine vorhandenen Daten nicht verloren gehen
+  const rawV5 = localStorage.getItem("gartentagebuch.v5");
+  if(rawV5) return JSON.parse(rawV5);
+
   return parseSeedCsv();
 }
 
@@ -225,7 +231,11 @@ function renderCalendar(){
   const rangeDays = Number($("calendarRange").value || 90);
   const today = startOfDay(new Date());
   const limit = addDays(today, rangeDays);
-  const events = buildCalendarEvents().filter(e=>e.date>=today && e.date<=limit).sort((a,b)=>a.date-b.date);
+  const typeFilter = $("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
+  const events = buildCalendarEvents()
+    .filter(e=>e.date>=today && e.date<=limit)
+    .filter(e=>!typeFilter || e.type.includes(typeFilter))
+    .sort((a,b)=>a.date-b.date);
   $("calendarTimeline").innerHTML = events.length ? events.map(e=>`
     <div class="timeline-item">
       <div class="timeline-date">${formatDate(e.date)}</div>
@@ -272,7 +282,7 @@ function renderCategoryDetail(category){
 }
 
 function entryCard(e){
-  return `<article class="card" data-entry-id="${e.id}"><h3>${escapeHtml(e.variety)}</h3><p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p><div class="badges"><span class="badge">gesät: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span></div><p class="meta">med: ${Math.round(e.expectedMed)} · geerntet: ${Math.round(e.actualHarvestTotal)} · offen: ${Math.round(e.openHarvest)}</p></article>`;
+  return `<article class="card" data-entry-id="${e.id}"><h3>${escapeHtml(e.variety)}</h3><p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p><div class="badges"><span class="badge">gesät: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span></div><p class="meta">med: ${Math.round(e.expectedMed)} · geerntet: ${Math.round(e.actualHarvestTotal)} · offen: ${Math.round(e.openHarvest)} · ${e.percentReached}% erreicht</p></article>`;
 }
 
 function renderDetail(id){
@@ -287,7 +297,9 @@ function renderDetail(id){
   <article class="card">
     <h2>${escapeHtml(e.category)} – ${escapeHtml(e.variety)}</h2>
     <p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p>
-    <div class="badges"><span class="badge">gesät/gepflanzt: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span><span class="badge">offen med: ${Math.round(e.openHarvest)}</span></div>
+    <div class="badges"><span class="badge">gesät/gepflanzt: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span><span class="badge">offen med: ${Math.round(e.openHarvest)}</span><span class="badge">${e.percentReached}% erreicht</span></div>
+    <div class="progressbar"><span style="width:${Math.min(e.percentReached,100)}%"></span></div>
+    <p class="meta">Ertragsfortschritt bezogen auf den mittleren erwarteten Ertrag.</p>
     <div class="tablewrap"><table><tbody>
       <tr><th>Aussaatdatum</th><td>${escapeHtml(e.sowingDate || "–")} ${e.sowingEstimated ? "(geschätzt)" : ""}</td></tr>
       <tr><th>Pflanzzeit</th><td>${escapeHtml(e.plantingTime || "–")}</td></tr>
@@ -300,11 +312,30 @@ function renderDetail(id){
     </tbody></table></div>
     <div class="actions"><button id="addHarvestBtn" type="button">+ Ernte eintragen</button><button id="editPlantBtn" class="secondary" type="button">Bearbeiten</button><button id="duplicatePlantBtn" class="secondary" type="button">Neu säen / duplizieren</button><button id="deletePlantBtn" class="danger" type="button">Löschen</button></div>
   </article>
-  <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th></tr></thead><tbody>${e.harvests.length ? e.harvests.map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td></tr>`).join("") : `<tr><td colspan="5">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
+  <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th><th>Aktionen</th></tr></thead><tbody>${e.harvests.length ? e.harvests.map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td><td><div class="small-actions"><button type="button" class="secondary" data-edit-harvest="${h.id}">✏️</button><button type="button" class="secondary" data-copy-harvest="${h.id}">⧉</button><button type="button" class="danger" data-delete-harvest="${h.id}">🗑️</button></div></td></tr>`).join("") : `<tr><td colspan="6">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
   $("addHarvestBtn").onclick=()=>openHarvestDialog(e.id);
   $("editPlantBtn").onclick=()=>openPlantDialog(e);
   $("duplicatePlantBtn").onclick=()=>{const copy=new GardenEntry({...e,id:undefined,variety:e.variety+" neue Aussaat",harvests:[],sowingDate:""}); entries.push(copy); saveEntries(); selectedEntryId=copy.id;};
   $("deletePlantBtn").onclick=()=>{if(confirm(`${e.variety} wirklich löschen?`)){entries=entries.filter(x=>x.id!==e.id); selectedEntryId=""; saveEntries();}};
+
+  document.querySelectorAll("[data-edit-harvest]").forEach(btn=>{
+    btn.onclick=(ev)=>{
+      ev.stopPropagation();
+      openHarvestDialog(e.id, btn.dataset.editHarvest);
+    };
+  });
+  document.querySelectorAll("[data-copy-harvest]").forEach(btn=>{
+    btn.onclick=(ev)=>{
+      ev.stopPropagation();
+      copyHarvest(e.id, btn.dataset.copyHarvest);
+    };
+  });
+  document.querySelectorAll("[data-delete-harvest]").forEach(btn=>{
+    btn.onclick=(ev)=>{
+      ev.stopPropagation();
+      deleteHarvest(e.id, btn.dataset.deleteHarvest);
+    };
+  });
 }
 
 function openPlantDialog(e=null){
@@ -327,22 +358,27 @@ function savePlantFromForm(ev){
   selectedCategory=entry.category; selectedEntryId=entry.id; $("plantDialog").close(); saveEntries();
 }
 
-function openHarvestDialog(id){
-  $("harvestPlantId").value=id;
-  $("harvestDate").value=new Date().toISOString().slice(0,10);
-  $("harvestFromDate").value="";
-  $("harvestToDate").value="";
-  $("harvestEstimated").checked=false;
-  $("harvestAmount").value="";
-  $("harvestUnit").value="Stück";
-  $("harvestNote").value="";
+function openHarvestDialog(entryId, harvestId=""){
+  const entry = entries.find(x=>x.id===entryId);
+  const harvest = entry?.harvests?.find(h=>h.id===harvestId);
+
+  $("harvestPlantId").value=entryId;
+  $("harvestId").value=harvestId || "";
+  $("harvestDate").value=harvest?.date || (harvestId ? "" : new Date().toISOString().slice(0,10));
+  $("harvestFromDate").value=harvest?.fromDate || "";
+  $("harvestToDate").value=harvest?.toDate || "";
+  $("harvestEstimated").checked=harvest?.estimated || false;
+  $("harvestAmount").value=harvest?.amount ?? "";
+  $("harvestUnit").value=harvest?.unit || "Stück";
+  $("harvestNote").value=harvest?.note || "";
   $("harvestDialog").showModal();
 }
 function saveHarvestFromForm(ev){
   ev.preventDefault();
   const e=entries.find(x=>x.id===$("harvestPlantId").value);
   if(e){
-    e.harvests.push(new HarvestEntry({
+    const harvestId = $("harvestId").value;
+    const data = new HarvestEntry({
       date:$("harvestDate").value,
       fromDate:$("harvestFromDate").value,
       toDate:$("harvestToDate").value,
@@ -350,10 +386,36 @@ function saveHarvestFromForm(ev){
       amount:$("harvestAmount").value,
       unit:$("harvestUnit").value,
       note:$("harvestNote").value
-    }));
+    });
+
+    if(harvestId){
+      data.id = harvestId;
+      e.harvests = e.harvests.map(h=>h.id===harvestId ? data : h);
+    } else {
+      e.harvests.push(data);
+    }
+
     $("harvestDialog").close();
     saveEntries();
   }
+}
+
+function deleteHarvest(entryId, harvestId){
+  const e = entries.find(x=>x.id===entryId);
+  if(!e) return;
+  if(confirm("Ernteeintrag wirklich löschen?")){
+    e.harvests = e.harvests.filter(h=>h.id!==harvestId);
+    saveEntries();
+  }
+}
+
+function copyHarvest(entryId, harvestId){
+  const e = entries.find(x=>x.id===entryId);
+  const h = e?.harvests?.find(x=>x.id===harvestId);
+  if(!e || !h) return;
+  const copy = new HarvestEntry({...h, note: h.note ? h.note + " (Kopie)" : "Kopie"});
+  e.harvests.push(copy);
+  saveEntries();
 }
 
 function exportCsv(){
@@ -447,6 +509,7 @@ $("backupFileInput").onchange=(ev)=>{
 };
 $("resetBtn").onclick=()=>{if(confirm("Startdaten neu laden? Deine lokalen Änderungen werden überschrieben.")){localStorage.removeItem(STORAGE_KEY); entries=parseSeedCsv(); saveEntries(); selectedCategory=""; selectedEntryId="";}};
 $("calendarRange").onchange=renderCalendar;
+$("calendarTypeFilter").onchange=renderCalendar;
 $("searchInput").oninput=()=>{if(selectedCategory) renderCategoryDetail(selectedCategory); else renderHome();};
 $("categoryFilter").onchange=()=>{selectedCategory=$("categoryFilter").value; selectedEntryId=""; selectedCategory?renderCategoryDetail(selectedCategory):renderHome();};
 $("backBtn").onclick=()=>{if(selectedEntryId){selectedEntryId=""; renderCategoryDetail(selectedCategory);} else {selectedCategory=""; $("categoryFilter").value=""; renderHome();}};

@@ -38,12 +38,20 @@
         <h2>Garten-Kalender</h2>
         <p class="meta">Zeigt Aussaat, früheste/späteste Keimung und früheste/späteste Ernte, sobald ein Aussaatdatum eingetragen ist.</p>
       </div>
-      <select id="calendarRange">
-        <option value="30">Nächste 30 Tage</option>
-        <option value="90" selected>Nächste 90 Tage</option>
-        <option value="180">Nächste 180 Tage</option>
-        <option value="365">Ganzes Jahr</option>
-      </select>
+      <div class="calendar-controls">
+        <select id="calendarRange">
+          <option value="30">Nächste 30 Tage</option>
+          <option value="90" selected>Nächste 90 Tage</option>
+          <option value="180">Nächste 180 Tage</option>
+          <option value="365">Ganzes Jahr</option>
+        </select>
+        <select id="calendarTypeFilter">
+          <option value="">Alle Termine</option>
+          <option value="Aussaat">Aussaat</option>
+          <option value="Keimung">Keimung</option>
+          <option value="Ernte">Ernte</option>
+        </select>
+      </div>
     </div>
     <div id="calendarTimeline" class="timeline"></div>
   </section>
@@ -148,6 +156,7 @@
   <form id="harvestForm">
     <h2>Ernte eintragen</h2>
     <input type="hidden" id="harvestPlantId" />
+    <input type="hidden" id="harvestId" />
     <label>Ernte-Datum
       <input id="harvestDate" type="date" />
     </label>

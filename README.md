@@ -1,27 +1,31 @@
-# Gartentagebuch PWA v5
+# Gartentagebuch PWA v6
 
-## Neu in v5
+## Neu in v6
 
-- Backup exportieren als JSON-Datei
-- Backup importieren aus JSON-Datei
-- Damit kannst du deine Daten vom Handy sichern oder später auf Laptop/anderes Gerät übertragen.
-- CSV-Export bleibt für Tabellen/Excel erhalten.
+- Ernteeinträge bearbeiten
+- Ernteeinträge löschen
+- Ernteeinträge kopieren
+- Ertragsfortschritt in Prozent
+- Fortschrittsbalken pro Pflanze/Sorte
+- Kalenderfilter: alle Termine, Aussaat, Keimung, Ernte
+- Migration aus v5, damit vorhandene Daten übernommen werden
 
-## Wichtig
+## Weiterhin ohne Cloud
 
-- CSV = gut zum Anschauen in Excel/Sheets
-- Backup JSON = wichtig zum Wiederherstellen der App-Daten
+Die App läuft weiterhin über GitHub Pages und speichert lokal im Browser.
+Für Datensicherung gibt es:
+- Backup exportieren
+- Backup importieren
 
-## Starten lokal
+## Update auf GitHub
 
-1. Ordner in VS Code öffnen.
-2. Rechtsklick auf `index.html`.
-3. `Open with Live Server`.
+Alte Dateien im Repository durch diese Dateien ersetzen:
+- index.html
+- styles.css
+- app.js
+- manifest.webmanifest
+- service-worker.js
+- icon.svg
+- README.md
 
-## Beim Wechsel von älteren Versionen
-
-Wenn du noch alte Daten siehst:
-1. DevTools öffnen.
-2. Application/Anwendung → Service Worker → Unregister.
-3. Storage → Clear site data.
-4. Neu öffnen.
+Danach auf GitHub committen.

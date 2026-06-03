@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch mit Backup Import/Export, Kalender und CSV-Export.",
+  "description": "Privates Gartentagebuch mit editierbarem Ernteverlauf, Backup, Kalender und CSV-Export.",
   "icons": [
     {
       "src": "icon.svg",

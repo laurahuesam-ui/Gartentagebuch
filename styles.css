@@ -13,3 +13,10 @@ button{border:0;border-radius:12px;padding:.8rem 1rem;background:var(--accent);c
 .tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:white}table{width:100%;border-collapse:collapse;min-width:720px}th,td{padding:.7rem;border-bottom:1px solid var(--line);text-align:left}th{background:#f3f0e6}.hidden{display:none!important}
 dialog{border:0;border-radius:20px;width:min(850px,95vw);box-shadow:0 25px 80px rgba(0,0,0,.25)}dialog::backdrop{background:rgba(0,0,0,.35)}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:.8rem}label{display:block;margin:.7rem 0;font-weight:700}label input,label select,label textarea{margin-top:.25rem;font-weight:400}menu{display:flex;justify-content:flex-end;gap:.5rem;padding:0}.ideas{margin-top:1.5rem}
 @media(max-width:750px){.dashboard{grid-template-columns:repeat(2,1fr)}.toolbar,.calendar-head{grid-template-columns:1fr;display:grid}.formgrid{grid-template-columns:1fr}.app-header{align-items:flex-start;flex-direction:column}.header-actions{width:100%;justify-content:stretch}.header-actions button{flex:1}.timeline-item{grid-template-columns:1fr}}
+
+.calendar-controls{display:flex;gap:.5rem;flex-wrap:wrap;justify-content:flex-end}
+.small-actions{display:flex;gap:.35rem;flex-wrap:wrap}
+.small-actions button{padding:.35rem .55rem;border-radius:9px;font-size:.85rem}
+.progressbar{height:12px;border-radius:999px;background:var(--accent2);overflow:hidden;margin:.4rem 0 .1rem}
+.progressbar span{display:block;height:100%;background:var(--accent);width:0}
+@media(max-width:750px){.calendar-controls{justify-content:stretch}.calendar-controls select{width:100%}}
