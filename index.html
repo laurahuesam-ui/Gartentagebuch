@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="theme-color" content="#4f7f52" />
+  <title>Gartentagebuch</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<header class="app-header">
+  <div>
+    <p class="eyebrow">Private PWA · lokale Datenbank</p>
+    <h1>Gartentagebuch</h1>
+  </div>
+  <div class="header-actions">
+    <button id="exportCsvBtn" class="secondary" type="button">CSV herunterladen</button>
+    <button id="exportBackupBtn" class="secondary" type="button">Backup exportieren</button>
+    <button id="importBackupBtn" class="secondary" type="button">Backup importieren</button>
+    <input id="backupFileInput" class="hidden" type="file" accept="application/json,.json" />
+    <button id="resetBtn" class="secondary" type="button">Startdaten neu laden</button>
+    <button id="installBtn" class="secondary hidden" type="button">Installieren</button>
+  </div>
+</header>
+
+<main>
+  <section class="dashboard">
+    <article><span id="statPlants">0</span><small>Einträge</small></article>
+    <article><span id="statAlive">0</span><small>lebend</small></article>
+    <article><span id="statHarvest">0</span><small>geerntet</small></article>
+    <article><span id="statOpen">0</span><small>noch offen med</small></article>
+  </section>
+
+  <section class="calendar-card">
+    <div class="calendar-head">
+      <div>
+        <h2>Garten-Kalender</h2>
+        <p class="meta">Zeigt Aussaat, früheste/späteste Keimung und früheste/späteste Ernte, sobald ein Aussaatdatum eingetragen ist.</p>
+      </div>
+      <select id="calendarRange">
+        <option value="30">Nächste 30 Tage</option>
+        <option value="90" selected>Nächste 90 Tage</option>
+        <option value="180">Nächste 180 Tage</option>
+        <option value="365">Ganzes Jahr</option>
+      </select>
+    </div>
+    <div id="calendarTimeline" class="timeline"></div>
+  </section>
+
+  <section class="toolbar">
+    <input id="searchInput" type="search" placeholder="Suchen: Tomate, San Marzano, Hochbeet ..." />
+    <select id="categoryFilter"><option value="">Alle Pflanzenarten</option></select>
+    <button id="newPlantBtn" type="button">+ Neuer Eintrag</button>
+  </section>
+
+  <section id="homeView">
+    <h2>Pflanzenarten</h2>
+    <div id="categoryGrid" class="grid"></div>
+  </section>
+
+  <section id="detailView" class="hidden">
+    <button id="backBtn" class="linkbtn" type="button">← Zurück</button>
+    <div id="detailContent"></div>
+  </section>
+</main>
+
+<dialog id="plantDialog">
+  <form id="plantForm">
+    <h2 id="dialogTitle">Eintrag bearbeiten</h2>
+    <input type="hidden" id="plantId" />
+
+    <div class="formgrid">
+      <label>Pflanzenart/Klasse
+        <input id="category" required placeholder="z.B. Tomate" />
+      </label>
+      <label>Sorte/Unterklasse
+        <input id="variety" required placeholder="z.B. San Marzano" />
+      </label>
+      <label>Hochbeet
+        <input id="locHochbeet" type="checkbox" />
+      </label>
+      <label>Boden
+        <input id="locBoden" type="checkbox" />
+      </label>
+      <label>Topf
+        <input id="locTopf" type="checkbox" />
+      </label>
+      <label>Gesät/gepflanzt
+        <input id="sownCount" type="number" min="0" />
+      </label>
+      <label>Lebend
+        <input id="aliveCount" type="number" min="0" />
+      </label>
+      <label>Aussaatdatum
+        <input id="sowingDate" type="date" />
+      </label>
+      <label>Aussaat nur geschätzt
+        <input id="sowingEstimated" type="checkbox" />
+      </label>
+      <label>Pflanzzeit
+        <input id="plantingTime" placeholder="z.B. Mai nach Eisheiligen" />
+      </label>
+      <label>Keimdauer frühestens in Tagen
+        <input id="germinationMinDays" type="number" min="0" />
+      </label>
+      <label>Keimdauer spätestens in Tagen
+        <input id="germinationMaxDays" type="number" min="0" />
+      </label>
+      <label>Pflanztiefe
+        <input id="plantingDepth" placeholder="z.B. 1–2 cm" />
+      </label>
+      <label>Ernte frühestens nach Tagen
+        <input id="harvestMinDays" type="number" min="0" />
+      </label>
+      <label>Ernte spätestens nach Tagen
+        <input id="harvestMaxDays" type="number" min="0" />
+      </label>
+      <label>Ertrag min je Pflanze
+        <input id="yieldMin" type="number" min="0" step="0.1" />
+      </label>
+      <label>Ertrag med je Pflanze
+        <input id="yieldMed" type="number" min="0" step="0.1" />
+      </label>
+      <label>Ertrag max je Pflanze
+        <input id="yieldMax" type="number" min="0" step="0.1" />
+      </label>
+      <label>Liter jetzt
+        <input id="literNow" type="number" min="0" step="0.1" />
+      </label>
+      <label>Liter später
+        <input id="literLater" type="number" min="0" step="0.1" />
+      </label>
+    </div>
+
+    <label>Notizen
+      <textarea id="notes" rows="3"></textarea>
+    </label>
+
+    <menu>
+      <button id="cancelPlantBtn" type="button" class="secondary">Abbrechen</button>
+      <button id="savePlantBtn" type="submit">Speichern</button>
+    </menu>
+  </form>
+</dialog>
+
+<dialog id="harvestDialog">
+  <form id="harvestForm">
+    <h2>Ernte eintragen</h2>
+    <input type="hidden" id="harvestPlantId" />
+    <label>Ernte-Datum
+      <input id="harvestDate" type="date" />
+    </label>
+    <label>oder Zeitraum von
+      <input id="harvestFromDate" type="date" />
+    </label>
+    <label>bis
+      <input id="harvestToDate" type="date" />
+    </label>
+    <label>Ernte nur geschätzt
+      <input id="harvestEstimated" type="checkbox" />
+    </label>
+    <label>Menge
+      <input id="harvestAmount" type="number" min="0" step="0.1" required />
+    </label>
+    <label>Einheit
+      <select id="harvestUnit">
+        <option>Stück</option>
+        <option>g</option>
+        <option>kg</option>
+        <option>Bund</option>
+        <option>Blätter</option>
+        <option>Liter</option>
+      </select>
+    </label>
+    <label>Notiz
+      <input id="harvestNote" />
+    </label>
+    <menu>
+      <button id="cancelHarvestBtn" type="button" class="secondary">Abbrechen</button>
+      <button id="saveHarvestBtn" type="submit">Speichern</button>
+    </menu>
+  </form>
+</dialog>
+
+<script id="seed-data" type="text/plain">Tomaten groß;Hochbeet|Boden;20;21;8;15;25;0;;;;;;;;
+Tomaten klein;Hochbeet|Boden;10;8;30;60;100;0;;;;;;;;
+Tomaten Mini;Hochbeet|Boden;4;1;40;80;140;0;;;;;;;;
+Tomaten Hybrid;Hochbeet|Boden;4;3;20;40;70;0;;;;;;;;
+Tomaten gelb;Hochbeet|Boden;4;3;20;45;80;0;;;;;;;;
+Tomaten Schoko;Hochbeet|Boden;4;3;15;30;50;0;;;;;;;;
+Tomaten Schoko klein;Hochbeet|Boden;4;4;25;50;90;0;;;;;;;;
+Tomaten Minibel;Hochbeet|Boden;14;0;20;35;60;0;;;;;;;;
+Tomaten Heartbreaker;Hochbeet|Boden;5;0;25;45;80;0;;;;;;;;
+Tomaten Tumbling Tom;Hochbeet|Boden;3;2;30;55;90;0;;;;;;;;
+Tomaten Moneymaker;Hochbeet|Boden;16;17;12;22;35;0;;;;;;;;
+Tomate San Maranzo gekauft;Hochbeet;1;1;15;35;75;0;;;;;;;;
+Kohlrabi angezogen;Hochbeet;18;3;1;1;1;0;;;;;;;;
+Salatgurke;Boden;14;0;6;10;18;0;;;;;;;;
+Snackgurke;Boden;4;3;10;18;30;0;;;;;;;;
+Mais;Boden;19;15;1;1;2;0;;;;;;;;
+Basilikum;Topf;200;245;10;30;80;0;;;;;;;;
+Petersilie Laura;Topf;150;31;10;30;80;0;;;;;;;;
+Schnittlauch;Topf;100;89;5;20;50;0;;;;;;;;
+Salat Babyleaf angezogen;Topf;100;115;2;6;12;0;;;;;;;;
+Ananaskirsche;Hochbeet|Topf;19;2;30;80;150;0;;;;;;;;
+Andenbeere;Hochbeet;10;10;30;80;150;0;;;;;;;;
+Wassermelone Sugar Baby;Hochbeet;5;4;2;6;12;0;;;;;;;;
+Chili;Hochbeet|Boden;6;6;20;50;100;0;;;;;;;;
+Snackpaprika;Hochbeet|Boden;7;7;10;20;35;0;;;;;;;;
+Zwiebeln angezogen;Hochbeet|Boden;22;0;1;1;1;0;;;;;;;;
+Lauch;Hochbeet;19;14;1;1;1;0;;;;;;;;
+Paprika Mix;Hochbeet|Boden;28;17;5;8;12;0;;;;;;;;
+Paprika Yolo Wonder;Hochbeet|Boden;13;8;5;10;18;0;;;;;;;;
+Butternut-Kürbis;Boden;5;5;2;3;5;0;;;;;;;;
+Zuckererbsen;Boden;183;159;10;25;40;0;;;;;;;;
+Salat Babyleaf;Hochbeet;68;68;2;6;12;0;;;;;;;;
+Spinat;Hochbeet;51;51;5;15;30;0;;;;;;;;
+Kohlrabi;Hochbeet;100;100;1;1;1;0;;;;;;;;
+Radieschen;Hochbeet;265;256;1;1;1;123;112;11;;;;;;
+Schlotten;Hochbeet|Topf;69;69;1;1;1;0;;;;;;;;
+Karotten;Hochbeet;0;0;1;1;1;0;;;;;;;;
+Steckzwiebeln;Boden;55;14;1;1;1;0;;;;;;;;
+Zwiebeln direkt;Topf;26;26;1;1;1;0;;;;;;;;
+Gurke direkt;Boden;1;0;3;12;35;0;;;;;;;;
+Snackgurke direkt;Boden;1;0;8;28;60;0;;;;;;;;
+Sojabohne;Boden;6;0;10;45;100;0;;;;;;;;
+Buschbohnen Maxi;Hochbeet;23;21;15;60;150;0;;;;;;;;
+Hokkaido;Boden;4;4;1;4;12;0;;;;;;;;
+Stangenbohnen Cobra;Boden;12;3;20;40;80;0;;;;;;;;
+Tomate Previa gekauft;Hochbeet;4;4;40;120;250;0;;;;;;;;
+Tomate Trilly gekauft;Hochbeet;3;3;30;100;200;0;;;;;;;;
+Paprika Goldstar gekauft;Hochbeet;1;1;3;8;15;0;;;;;;;;
+Chili gekauft;Hochbeet;1;1;8;30;80;0;;;;;;;;
+Gurke gekauft;Boden;1;1;5;15;30;0;;;;;;;;
+Brotzeitgurke gekauft;Boden;1;1;10;25;60;0;;;;;;;;
+Zucchini gekauft;Boden;3;3;5;15;40;0;;;;;;;;
+Kohlrabi gekauft;Hochbeet;11;11;1;1;1;0;;;;;;;;
+Salat Kopf gekauft;Hochbeet;7;7;1;1;1;0;;;;;;;;
+Salat Pflück gekauft;Hochbeet;6;6;10;55;100;0;;;;;;;;
+Rosmarin gekauft;Hochbeet;1;1;5;20;50;0;;;;;;;;
+Kartoffeln;Topf;192;0;1;5;14;0;;;;;;;;
+Walderdbeeren;Topf;250;207;20;50;100;0;;;;;;;;
+Erdbeeren neu;Topf;100;31;15;40;80;0;;;;;;; ;
+Erdbeeren bestehend;Topf;87;87;15;40;80;59;25;34;;;;;;
+Blaubeere Hortblue Petite;Topf;2;2;5;20;50;0;;;;;;;20;45
+Blaubeere Bluecorp;Topf;1;1;5;15;40;0;;;;;;;35;60
+Blaubeere Brigitta Blue;Topf;1;1;3;15;40;0;;;;;;;25;70
+Blaubeere Vaccinium angustifolium BerryBux;Topf;2;2;5;20;60;0;;;;;;;10;30
+Himbeere Black Jewel;Topf;1;1;0;10;30;0;;;;;;;20;60
+Himbeere Rubus idaeus Armona Queen;Topf;1;1;0;10;35;0;;;;;;;25;40
+Himbeere Rubus idaeus Fallgold;Topf;1;1;0;8;25;0;;;;;;;20;40
+Brombeere Rubus fructicosus Chester;Topf;1;1;3;12;35;0;;;;;;;35;60
+Erdbeer-Himbeer Rubus illecebrosus;Topf;1;1;3;15;40;0;;;;;;;20;30
+Apfelbaum Cox Orange;Boden;1;1;0;3;8;0;;;;;;;;
+Birnenbaum Williams Christ;Boden;1;1;0;3;12;0;;;;;;;;</script>
+<script src="app.js"></script>
+</body>
+</html>

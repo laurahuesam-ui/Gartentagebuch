@@ -1,0 +1,16 @@
+{
+  "name": "Gartentagebuch",
+  "short_name": "Garten",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f3ea",
+  "theme_color": "#4f7f52",
+  "description": "Privates Gartentagebuch mit Backup Import/Export, Kalender und CSV-Export.",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
