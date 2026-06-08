@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v9";
+const STORAGE_KEY = "gartentagebuch.v8";
 const $ = id => document.getElementById(id);
 
 class HarvestEntry {
@@ -74,38 +74,15 @@ let selectedCategory = "";
 let selectedEntryId = "";
 
 function loadEntries(){
-  const current = localStorage.getItem(STORAGE_KEY);
-  if(current) return JSON.parse(current);
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if(raw) return JSON.parse(raw);
 
-  // Reparatur-Migration: Suche alle älteren Speicherstände und nimm den neuesten mit Daten.
-  const oldKeys = [
-    "gartentagebuch.v8",
-    "gartentagebuch.v7",
-    "gartentagebuch.v6",
-    "gartentagebuch.v5",
-    "gartentagebuch.v4",
-    "gartentagebuch.v3",
-    "gartentagebuch.v2",
-    "gartentagebuch.v1"
-  ];
-
-  for(const key of oldKeys){
-    const raw = localStorage.getItem(key);
-    if(!raw) continue;
-    try{
-      const parsed = JSON.parse(raw);
-      if(Array.isArray(parsed) && parsed.length){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
-        return parsed;
-      }
-      if(parsed?.entries && Array.isArray(parsed.entries) && parsed.entries.length){
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed.entries));
-        return parsed.entries;
-      }
-    }catch(e){
-      console.warn("Alter Speicherstand konnte nicht gelesen werden:", key, e);
-    }
-  }
+  const rawV7 = localStorage.getItem("gartentagebuch.v7");
+  if(rawV7) return JSON.parse(rawV7);
+  const rawV6 = localStorage.getItem("gartentagebuch.v6");
+  if(rawV6) return JSON.parse(rawV6);
+  const rawV5 = localStorage.getItem("gartentagebuch.v5");
+  if(rawV5) return JSON.parse(rawV5);
 
   return parseSeedCsv();
 }
@@ -580,26 +557,6 @@ function completeGerminationEvent(updateCount){
   saveEntries();
 }
 
-
-function exportAllLocalStorageForRescue(){
-  const data = {};
-  for(let i=0; i<localStorage.length; i++){
-    const key = localStorage.key(i);
-    if(key && key.startsWith("gartentagebuch.")){
-      data[key] = localStorage.getItem(key);
-    }
-  }
-  const blob = new Blob([JSON.stringify({exportedAt:new Date().toISOString(), storage:data}, null, 2)], {type:"application/json;charset=utf-8"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `gartentagebuch-rettung-${new Date().toISOString().slice(0,10)}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 function exportBackup(){
   const backup = {
     app: "gartentagebuch-pwa",
@@ -680,7 +637,6 @@ $("plantForm").onsubmit=savePlantFromForm;
 $("harvestForm").onsubmit=saveHarvestFromForm;
 $("exportCsvBtn").onclick=exportCsv;
 $("exportBackupBtn").onclick=exportBackup;
-$("rescueBackupBtn").onclick=exportAllLocalStorageForRescue;
 $("importBackupBtn").onclick=()=>$("backupFileInput").click();
 $("backupFileInput").onchange=(ev)=>{
   const file = ev.target.files?.[0];
