@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v6";
+const STORAGE_KEY = "gartentagebuch.v7";
 const $ = id => document.getElementById(id);
 
 class HarvestEntry {
@@ -40,6 +40,10 @@ class GardenEntry {
     this.aliveCount = Number(data.aliveCount || 0);
     this.sowingDate = data.sowingDate || "";
     this.sowingEstimated = Boolean(data.sowingEstimated);
+    this.isBought = Boolean(data.isBought);
+    this.purchaseDate = data.purchaseDate || "";
+    this.purchaseSize = data.purchaseSize || "";
+    this.doneEvents = data.doneEvents || {};
     this.plantingTime = data.plantingTime || "";
     this.germinationMinDays = Number(data.germinationMinDays || 0);
     this.germinationMaxDays = Number(data.germinationMaxDays || 0);
@@ -71,7 +75,8 @@ function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
 
-  // Migration aus v5, damit deine vorhandenen Daten nicht verloren gehen
+  const rawV6 = localStorage.getItem("gartentagebuch.v6");
+  if(rawV6) return JSON.parse(rawV6);
   const rawV5 = localStorage.getItem("gartentagebuch.v5");
   if(rawV5) return JSON.parse(rawV5);
 
@@ -119,6 +124,7 @@ function parseSeedCsv(){
       literNow: literNow || "",
       literLater: literLater || "",
       harvests,
+      isBought: /gekauft|baum|blaubeere|himbeere|brombeere/i.test(name),
       ...defaults
     });
   });
@@ -223,8 +229,11 @@ function render(){
 function renderStats(){
   $("statPlants").textContent = entries.length;
   $("statAlive").textContent = entries.reduce((s,e)=>s+e.aliveCount,0);
-  $("statHarvest").textContent = Math.round(entries.reduce((s,e)=>s+e.actualHarvestTotal,0));
+  const totalHarvest = entries.reduce((s,e)=>s+e.actualHarvestTotal,0);
+  const totalExpected = entries.reduce((s,e)=>s+e.expectedMed,0);
+  $("statHarvest").textContent = Math.round(totalHarvest);
   $("statOpen").textContent = Math.round(entries.reduce((s,e)=>s+e.openHarvest,0));
+  $("statPercent").textContent = totalExpected ? `${Math.round(totalHarvest / totalExpected * 100)}%` : "0%";
 }
 
 function renderCalendar(){
@@ -232,28 +241,56 @@ function renderCalendar(){
   const today = startOfDay(new Date());
   const limit = addDays(today, rangeDays);
   const typeFilter = $("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
+  const doneFilter = $("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
   const events = buildCalendarEvents()
     .filter(e=>e.date>=today && e.date<=limit)
     .filter(e=>!typeFilter || e.type.includes(typeFilter))
+    .filter(e=>!doneFilter || (doneFilter === "done" ? e.done : !e.done))
     .sort((a,b)=>a.date-b.date);
   $("calendarTimeline").innerHTML = events.length ? events.map(e=>`
-    <div class="timeline-item">
+    <div class="timeline-item ${e.done ? "done-event" : ""}">
       <div class="timeline-date">${formatDate(e.date)}</div>
-      <div><div class="timeline-title">${escapeHtml(e.title)}</div><div class="meta">${escapeHtml(e.subtitle)}</div><span class="timeline-type">${escapeHtml(e.type)}</span></div>
-    </div>`).join("") : `<p class="meta">Noch keine Termine im Zeitraum. Trage bei Sorten ein Aussaatdatum ein.</p>`;
+      <div>
+        <div class="timeline-title">${escapeHtml(e.title)}</div>
+        <div class="meta">${escapeHtml(e.subtitle)}</div>
+        <span class="timeline-type">${escapeHtml(e.type)}</span>
+        <label class="event-check"><input type="checkbox" data-event-done="${e.entryId}|${e.key}" ${e.done ? "checked" : ""}/> erledigt / passiert</label>
+      </div>
+    </div>`).join("") : `<p class="meta">Noch keine Termine im Zeitraum. Trage ein Aussaat- oder Kaufdatum ein.</p>`;
+
+  document.querySelectorAll("[data-event-done]").forEach(cb=>{
+    cb.onchange=()=>{
+      const [entryId, key] = cb.dataset.eventDone.split("|");
+      toggleEventDone(entryId, key, cb.checked);
+    };
+  });
 }
 
 function buildCalendarEvents(){
   const events=[];
   for(const e of entries){
-    const sow=parseLocalDate(e.sowingDate); if(!sow) continue;
-    events.push({date:sow,type:e.sowingEstimated ? "Aussaat ca." : "Aussaat",title:`${e.variety}`,subtitle:`${e.category} · ${e.sownCount} gesät/gepflanzt${e.sowingEstimated ? " · geschätzt" : ""}`});
-    if(e.germinationMinDays) events.push({date:addDays(sow,e.germinationMinDays),type:"Keimung frühestens",title:`${e.variety}: Keimlinge frühestens`,subtitle:`nach ${e.germinationMinDays} Tagen`});
-    if(e.germinationMaxDays && e.germinationMaxDays!==e.germinationMinDays) events.push({date:addDays(sow,e.germinationMaxDays),type:"Keimung spätestens",title:`${e.variety}: Keimlinge spätestens`,subtitle:`nach ${e.germinationMaxDays} Tagen`});
-    if(e.harvestMinDays) events.push({date:addDays(sow,e.harvestMinDays),type:"Ernte frühestens",title:`${e.variety}: Ernte frühestens`,subtitle:`med erwartet: ${Math.round(e.expectedMed)}`});
-    if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push({date:addDays(sow,e.harvestMaxDays),type:"Ernte spätestens",title:`${e.variety}: Ernte spätestens`,subtitle:`offen med: ${Math.round(e.openHarvest)}`});
+    const baseDate = e.isBought ? parseLocalDate(e.purchaseDate || e.sowingDate) : parseLocalDate(e.sowingDate);
+    if(!baseDate) continue;
+    events.push(makeEvent(e, "base", baseDate, e.isBought ? "Kauf/Pflanzung" : (e.sowingEstimated ? "Aussaat ca." : "Aussaat"), `${e.variety}`, `${e.category} · ${e.sownCount} ${e.isBought ? "gekauft/gepflanzt" : "gesät/gepflanzt"}${e.sowingEstimated ? " · geschätzt" : ""}`));
+    if(!e.isBought && e.germinationMinDays) events.push(makeEvent(e, "germMin", addDays(baseDate,e.germinationMinDays), "Keimung frühestens", `${e.variety}: Keimlinge frühestens`, `nach ${e.germinationMinDays} Tagen`));
+    if(!e.isBought && e.germinationMaxDays && e.germinationMaxDays!==e.germinationMinDays) events.push(makeEvent(e, "germMax", addDays(baseDate,e.germinationMaxDays), "Keimung spätestens", `${e.variety}: Keimlinge spätestens`, `nach ${e.germinationMaxDays} Tagen`));
+    if(e.harvestMinDays) events.push(makeEvent(e, "harvestMin", addDays(baseDate,e.harvestMinDays), "Ernte frühestens", `${e.variety}: Ernte frühestens`, `med erwartet: ${Math.round(e.expectedMed)}`));
+    if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push(makeEvent(e, "harvestMax", addDays(baseDate,e.harvestMaxDays), "Ernte spätestens", `${e.variety}: Ernte spätestens`, `offen med: ${Math.round(e.openHarvest)}`));
   }
   return events;
+}
+
+function makeEvent(entry, key, date, type, title, subtitle){
+  return {entryId: entry.id, key, date, type, title, subtitle, done: Boolean(entry.doneEvents?.[key])};
+}
+
+function toggleEventDone(entryId, key, done){
+  const e = entries.find(x=>x.id===entryId);
+  if(!e) return;
+  e.doneEvents = e.doneEvents || {};
+  if(done) e.doneEvents[key] = true;
+  else delete e.doneEvents[key];
+  saveEntries();
 }
 
 function renderCategoryFilter(){
@@ -301,7 +338,10 @@ function renderDetail(id){
     <div class="progressbar"><span style="width:${Math.min(e.percentReached,100)}%"></span></div>
     <p class="meta">Ertragsfortschritt bezogen auf den mittleren erwarteten Ertrag.</p>
     <div class="tablewrap"><table><tbody>
+      <tr><th>Typ</th><td>${e.isBought ? "gekauft/gepflanzt" : "gesät"}</td></tr>
       <tr><th>Aussaatdatum</th><td>${escapeHtml(e.sowingDate || "–")} ${e.sowingEstimated ? "(geschätzt)" : ""}</td></tr>
+      <tr><th>Kauf-/Pflanzdatum</th><td>${escapeHtml(e.purchaseDate || "–")}</td></tr>
+      <tr><th>Größe beim Kauf</th><td>${escapeHtml(e.purchaseSize || "–")}</td></tr>
       <tr><th>Pflanzzeit</th><td>${escapeHtml(e.plantingTime || "–")}</td></tr>
       <tr><th>Keimdauer früh/spät</th><td>${e.germinationMinDays || "–"} / ${e.germinationMaxDays || "–"} Tage → ${germMin} / ${germMax}</td></tr>
       <tr><th>Pflanztiefe</th><td>${escapeHtml(e.plantingDepth || "–")}</td></tr>
@@ -315,7 +355,11 @@ function renderDetail(id){
   <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th><th>Aktionen</th></tr></thead><tbody>${e.harvests.length ? e.harvests.map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td><td><div class="small-actions"><button type="button" class="secondary" data-edit-harvest="${h.id}">✏️</button><button type="button" class="secondary" data-copy-harvest="${h.id}">⧉</button><button type="button" class="danger" data-delete-harvest="${h.id}">🗑️</button></div></td></tr>`).join("") : `<tr><td colspan="6">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
   $("addHarvestBtn").onclick=()=>openHarvestDialog(e.id);
   $("editPlantBtn").onclick=()=>openPlantDialog(e);
-  $("duplicatePlantBtn").onclick=()=>{const copy=new GardenEntry({...e,id:undefined,variety:e.variety+" neue Aussaat",harvests:[],sowingDate:""}); entries.push(copy); saveEntries(); selectedEntryId=copy.id;};
+  $("duplicatePlantBtn").onclick=()=>{
+    const today = new Date().toISOString().slice(0,10);
+    const copy=new GardenEntry({...e,id:undefined,variety:e.variety+" neue Aussaat",sownCount:0,aliveCount:0,harvests:[],doneEvents:{},sowingDate:e.isBought ? "" : today,purchaseDate:e.isBought ? today : "",notes:""});
+    entries.push(copy); saveEntries(); selectedEntryId=copy.id;
+  };
   $("deletePlantBtn").onclick=()=>{if(confirm(`${e.variety} wirklich löschen?`)){entries=entries.filter(x=>x.id!==e.id); selectedEntryId=""; saveEntries();}};
 
   document.querySelectorAll("[data-edit-harvest]").forEach(btn=>{
@@ -342,7 +386,7 @@ function openPlantDialog(e=null){
   $("dialogTitle").textContent=e?"Eintrag bearbeiten":"Neuer Pflanzen-Eintrag";
   $("plantId").value=e?.id||""; $("category").value=e?.category||""; $("variety").value=e?.variety||"";
   $("locHochbeet").checked=e?.locations?.includes("Hochbeet")||false; $("locBoden").checked=e?.locations?.includes("Boden")||false; $("locTopf").checked=e?.locations?.includes("Topf")||false;
-  $("sownCount").value=e?.sownCount??""; $("aliveCount").value=e?.aliveCount??""; $("sowingDate").value=e?.sowingDate||""; $("sowingEstimated").checked=e?.sowingEstimated||false; $("plantingTime").value=e?.plantingTime||"";
+  $("sownCount").value=e?.sownCount??""; $("aliveCount").value=e?.aliveCount??""; $("sowingDate").value=e?.sowingDate||""; $("sowingEstimated").checked=e?.sowingEstimated||false; $("isBought").checked=e?.isBought||false; $("purchaseDate").value=e?.purchaseDate||""; $("purchaseSize").value=e?.purchaseSize||""; $("plantingTime").value=e?.plantingTime||"";
   $("germinationMinDays").value=e?.germinationMinDays??""; $("germinationMaxDays").value=e?.germinationMaxDays??""; $("plantingDepth").value=e?.plantingDepth||"";
   $("harvestMinDays").value=e?.harvestMinDays??""; $("harvestMaxDays").value=e?.harvestMaxDays??""; $("yieldMin").value=e?.yieldMin??""; $("yieldMed").value=e?.yieldMed??""; $("yieldMax").value=e?.yieldMax??"";
   $("literNow").value=e?.literNow??""; $("literLater").value=e?.literLater??""; $("notes").value=e?.notes||"";
@@ -353,7 +397,7 @@ function savePlantFromForm(ev){
   ev.preventDefault();
   const id=$("plantId").value; const old=entries.find(e=>e.id===id);
   const locations=[]; if($("locHochbeet").checked) locations.push("Hochbeet"); if($("locBoden").checked) locations.push("Boden"); if($("locTopf").checked) locations.push("Topf");
-  const entry=new GardenEntry({id:id||undefined,category:$("category").value,variety:$("variety").value,locations,sownCount:$("sownCount").value,aliveCount:$("aliveCount").value,sowingDate:$("sowingDate").value,sowingEstimated:$("sowingEstimated").checked,plantingTime:$("plantingTime").value,germinationMinDays:$("germinationMinDays").value,germinationMaxDays:$("germinationMaxDays").value,plantingDepth:$("plantingDepth").value,harvestMinDays:$("harvestMinDays").value,harvestMaxDays:$("harvestMaxDays").value,yieldMin:$("yieldMin").value,yieldMed:$("yieldMed").value,yieldMax:$("yieldMax").value,literNow:$("literNow").value,literLater:$("literLater").value,notes:$("notes").value,harvests:old?.harvests||[]});
+  const entry=new GardenEntry({id:id||undefined,category:$("category").value,variety:$("variety").value,locations,sownCount:$("sownCount").value,aliveCount:$("aliveCount").value,sowingDate:$("sowingDate").value,sowingEstimated:$("sowingEstimated").checked,isBought:$("isBought").checked,purchaseDate:$("purchaseDate").value,purchaseSize:$("purchaseSize").value,doneEvents:old?.doneEvents||{},plantingTime:$("plantingTime").value,germinationMinDays:$("germinationMinDays").value,germinationMaxDays:$("germinationMaxDays").value,plantingDepth:$("plantingDepth").value,harvestMinDays:$("harvestMinDays").value,harvestMaxDays:$("harvestMaxDays").value,yieldMin:$("yieldMin").value,yieldMed:$("yieldMed").value,yieldMax:$("yieldMax").value,literNow:$("literNow").value,literLater:$("literLater").value,notes:$("notes").value,harvests:old?.harvests||[]});
   if(old) entries=entries.map(e=>e.id===id?entry:e); else entries.push(entry);
   selectedCategory=entry.category; selectedEntryId=entry.id; $("plantDialog").close(); saveEntries();
 }
@@ -420,15 +464,39 @@ function copyHarvest(entryId, harvestId){
 
 function exportCsv(){
   const months=["Mai","Juni","Juli","August","September","Oktober"];
-  const header=["Pflanze","Hochbeet","Boden","Topf","gesät","Überlebensquote","lebend","Aussaatdatum","Aussaat geschätzt","Keimung frühestens","Keimung spätestens","Pflanzzeit","Pflanztiefe","Ernte frühestens nach Tagen","Ernte spätestens nach Tagen","Ertrag min","Ertrag med","Ertrag max","Ernte min","Ernte med","Ernte max","tatsächliche Ernte","noch offen",...months,"Liter jetzt","Liter später","Notizen"];
+  const header=["Pflanze","Hochbeet","Boden","Topf","gesät","Überlebensquote","lebend","Aussaatdatum","Aussaat geschätzt","Gekauft","Kauf-/Pflanzdatum","Größe beim Kauf","Keimung frühestens","Keimung spätestens","Pflanzzeit","Pflanztiefe","Ernte frühestens nach Tagen","Ernte spätestens nach Tagen","Ertrag min","Ertrag med","Ertrag max","Ernte min","Ernte med","Ernte max","tatsächliche Ernte","noch offen",...months,"Liter jetzt","Liter später","Notizen"];
   const rows=entries.map(e=>{
     const monthly=monthlyHarvests(e);
-    return [e.variety,e.locations.includes("Hochbeet")?"x":"",e.locations.includes("Boden")?"x":"",e.locations.includes("Topf")?"x":"",e.sownCount,e.survivalRate===null?"#DIV/0!":`${e.survivalRate}%`,e.aliveCount,e.sowingDate,e.sowingEstimated?"ja":"",e.germinationMinDays,e.germinationMaxDays,e.plantingTime,e.plantingDepth,e.harvestMinDays,e.harvestMaxDays,e.yieldMin,e.yieldMed,e.yieldMax,Math.round(e.expectedMin),Math.round(e.expectedMed),Math.round(e.expectedMax),Math.round(e.actualHarvestTotal),Math.round(e.openHarvest),...months.map(m=>monthly[m]||""),e.literNow,e.literLater,e.notes];
+    return [e.variety,e.locations.includes("Hochbeet")?"x":"",e.locations.includes("Boden")?"x":"",e.locations.includes("Topf")?"x":"",e.sownCount,e.survivalRate===null?"#DIV/0!":`${e.survivalRate}%`,e.aliveCount,e.sowingDate,e.sowingEstimated?"ja":"",e.isBought?"ja":"",e.purchaseDate,e.purchaseSize,e.germinationMinDays,e.germinationMaxDays,e.plantingTime,e.plantingDepth,e.harvestMinDays,e.harvestMaxDays,e.yieldMin,e.yieldMed,e.yieldMax,Math.round(e.expectedMin),Math.round(e.expectedMed),Math.round(e.expectedMax),Math.round(e.actualHarvestTotal),Math.round(e.openHarvest),...months.map(m=>monthly[m]||""),e.literNow,e.literLater,e.notes];
   });
   const csv=[header,...rows].map(r=>r.map(csvCell).join(";")).join("\n");
   const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"}); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download=`gartentagebuch-${new Date().toISOString().slice(0,10)}.csv`; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 
+
+
+function renderCatalog(){
+  const rows = entries.slice().sort((a,b)=>`${a.category} ${a.variety}`.localeCompare(`${b.category} ${b.variety}`,"de"));
+  $("catalogContent").innerHTML = `<table>
+    <thead><tr><th>Pflanzenart</th><th>Sorte/Eintrag</th><th>Typ</th><th>Keimung</th><th>Pflanztiefe</th><th>Pflanzzeit</th><th>Ernte früh/spät</th><th>Größe/Kauf</th></tr></thead>
+    <tbody>${rows.map(e=>`<tr>
+      <td>${escapeHtml(e.category)}</td>
+      <td>${escapeHtml(e.variety)}</td>
+      <td>${e.isBought ? "gekauft" : "gesät"}</td>
+      <td>${e.isBought ? "–" : `${e.germinationMinDays || "–"} / ${e.germinationMaxDays || "–"} Tage`}</td>
+      <td>${escapeHtml(e.plantingDepth || "–")}</td>
+      <td>${escapeHtml(e.plantingTime || "–")}</td>
+      <td>${e.harvestMinDays || "–"} / ${e.harvestMaxDays || "–"} Tage</td>
+      <td>${escapeHtml(e.purchaseSize || "–")}</td>
+    </tr>`).join("")}</tbody>
+  </table>`;
+}
+
+function openCatalog(){
+  $("catalogView").classList.remove("hidden");
+  renderCatalog();
+  $("catalogView").scrollIntoView({behavior:"smooth", block:"start"});
+}
 
 function exportBackup(){
   const backup = {
@@ -494,6 +562,12 @@ function addDays(d,days){const out=new Date(d); out.setDate(out.getDate()+Number
 function formatDate(d){return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});}
 function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 
+$("menuBtn").onclick=()=>$("menuPanel").classList.toggle("hidden");
+document.addEventListener("click",(ev)=>{
+  if($("menuPanel") && !$("menuPanel").contains(ev.target) && ev.target !== $("menuBtn")) $("menuPanel").classList.add("hidden");
+});
+$("catalogBtn").onclick=()=>{ $("menuPanel").classList.add("hidden"); openCatalog(); };
+$("closeCatalogBtn").onclick=()=> $("catalogView").classList.add("hidden");
 $("newPlantBtn").onclick=()=>openPlantDialog();
 $("cancelPlantBtn").onclick=()=>$("plantDialog").close();
 $("cancelHarvestBtn").onclick=()=>$("harvestDialog").close();

@@ -1,31 +1,13 @@
-# Gartentagebuch PWA v6
+# Gartentagebuch PWA v7
 
-## Neu in v6
+Neu:
+- mobiles Dropdown-Menü
+- Stammdaten-Katalog
+- gekauft/gepflanzt statt Aussaat
+- Kauf-/Pflanzdatum und Größe beim Kauf
+- Kalendertermine abhaken
+- Kalenderfilter nach Status und Typ
+- Dashboard mit Prozent vom mittleren erwarteten Ertrag
+- „Neu säen / duplizieren“ kopiert nur Stammdaten, nicht Mengen/Ernten; Datum ist heute
 
-- Ernteeinträge bearbeiten
-- Ernteeinträge löschen
-- Ernteeinträge kopieren
-- Ertragsfortschritt in Prozent
-- Fortschrittsbalken pro Pflanze/Sorte
-- Kalenderfilter: alle Termine, Aussaat, Keimung, Ernte
-- Migration aus v5, damit vorhandene Daten übernommen werden
-
-## Weiterhin ohne Cloud
-
-Die App läuft weiterhin über GitHub Pages und speichert lokal im Browser.
-Für Datensicherung gibt es:
-- Backup exportieren
-- Backup importieren
-
-## Update auf GitHub
-
-Alte Dateien im Repository durch diese Dateien ersetzen:
-- index.html
-- styles.css
-- app.js
-- manifest.webmanifest
-- service-worker.js
-- icon.svg
-- README.md
-
-Danach auf GitHub committen.
+Update: Dateien in GitHub ersetzen und committen.

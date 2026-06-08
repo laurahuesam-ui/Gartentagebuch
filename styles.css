@@ -20,3 +20,12 @@ dialog{border:0;border-radius:20px;width:min(850px,95vw);box-shadow:0 25px 80px 
 .progressbar{height:12px;border-radius:999px;background:var(--accent2);overflow:hidden;margin:.4rem 0 .1rem}
 .progressbar span{display:block;height:100%;background:var(--accent);width:0}
 @media(max-width:750px){.calendar-controls{justify-content:stretch}.calendar-controls select{width:100%}}
+
+.menu-wrap{position:relative}
+.menu-panel{position:absolute;right:0;top:calc(100% + .5rem);display:grid;gap:.45rem;min-width:235px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:.6rem;box-shadow:var(--shadow);z-index:20}
+.menu-panel button{width:100%;text-align:left}
+.catalog-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:1rem;box-shadow:var(--shadow);margin-bottom:1rem}
+.done-event{opacity:.58}
+.event-check{display:flex;align-items:center;gap:.5rem;margin-top:.35rem;font-weight:600}
+.event-check input{width:auto}
+@media(max-width:750px){.menu-panel{position:fixed;left:1rem;right:1rem;top:5.5rem}.header-actions{width:auto}.header-actions button{flex:none}}
