@@ -1,14 +1,11 @@
-# Gartentagebuch PWA v8
+# Gartentagebuch PWA v9
 
-Neu:
-- Dashboard ohne Einträge-Karte
-- Kalender zeigt standardmäßig nur offene Aufgaben
-- abgehakte Kalendertermine verschwinden aus der Standardansicht
-- Statusfilter: offen / erledigt / alle
-- beim Abhaken von Keimung kannst du direkt die Anzahl lebender/gekeimter Pflanzen eintragen
-- bei Pflanzen gibt es +1 gekeimt/lebend und Anzahl eintragen
-- neue Aussaat dupliziert nur Stammdaten, nicht Menge/Ernten; Untereintrag ist das heutige Aussaatdatum
-- Katalog ergänzt Blüte früh/spät für mehrjährige Pflanzen
-- gekaufte Sträucher/Bäume werden als gekauft behandelt
+Reparatur-Version:
+- sucht automatisch alte lokale Speicherstände v1 bis v8
+- übernimmt den neuesten gefundenen Speicherstand nach v9
+- zusätzlicher Button: Rettungsdatei exportieren
 
-Update: Dateien in GitHub ersetzen und committen.
+Wichtig:
+- Nicht „Startdaten neu laden“ drücken, wenn du deine eigenen Daten retten willst.
+- Erst v9 hochladen, öffnen und prüfen.
+- Danach Backup exportieren.
