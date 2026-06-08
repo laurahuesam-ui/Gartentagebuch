@@ -29,7 +29,3 @@ dialog{border:0;border-radius:20px;width:min(850px,95vw);box-shadow:0 25px 80px 
 .event-check{display:flex;align-items:center;gap:.5rem;margin-top:.35rem;font-weight:600}
 .event-check input{width:auto}
 @media(max-width:750px){.menu-panel{position:fixed;left:1rem;right:1rem;top:5.5rem}.header-actions{width:auto}.header-actions button{flex:none}}
-
-.quick-germination{display:flex;gap:.4rem;flex-wrap:wrap;align-items:center;margin-top:.7rem}
-.quick-germination input{max-width:130px}
-@media(max-width:750px){.quick-germination input{max-width:100%}}

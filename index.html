@@ -20,7 +20,6 @@
       <button id="catalogBtn" class="secondary" type="button">Stammdaten-Katalog</button>
       <button id="exportCsvBtn" class="secondary" type="button">CSV herunterladen</button>
       <button id="exportBackupBtn" class="secondary" type="button">Backup exportieren</button>
-      <button id="rescueBackupBtn" class="secondary" type="button">Rettungsdatei exportieren</button>
       <button id="importBackupBtn" class="secondary" type="button">Backup importieren</button>
       <input id="backupFileInput" class="hidden" type="file" accept="application/json,.json" />
       <button id="resetBtn" class="secondary" type="button">Startdaten neu laden</button>
@@ -31,6 +30,7 @@
 
 <main>
   <section class="dashboard">
+    <article><span id="statPlants">0</span><small>Einträge</small></article>
     <article><span id="statAlive">0</span><small>lebend</small></article>
     <article><span id="statHarvest">0</span><small>geerntet</small></article>
     <article><span id="statOpen">0</span><small>noch offen med</small></article>
@@ -58,7 +58,7 @@
         </select>
         <select id="calendarDoneFilter">
           <option value="">Alle Status</option>
-          <option value="open" selected>Nur offen</option>
+          <option value="open">Nur offen</option>
           <option value="done">Nur erledigt</option>
         </select>
       </div>
@@ -136,12 +136,6 @@
       <label>Größe beim Kauf
         <input id="purchaseSize" placeholder="z.B. 1 m Baum, 3 l Topf, Jungpflanze" />
       </label>
-      <label>Blüte frühestens
-        <input id="bloomStart" placeholder="z.B. April" />
-      </label>
-      <label>Blüte spätestens
-        <input id="bloomEnd" placeholder="z.B. Mai" />
-      </label>
       <label>Pflanzzeit
         <input id="plantingTime" placeholder="z.B. Mai nach Eisheiligen" />
       </label>
@@ -184,24 +178,6 @@
     <menu>
       <button id="cancelPlantBtn" type="button" class="secondary">Abbrechen</button>
       <button id="savePlantBtn" type="submit">Speichern</button>
-    </menu>
-  </form>
-</dialog>
-
-
-<dialog id="germinationDialog">
-  <form id="germinationForm">
-    <h2>Keimlinge eintragen</h2>
-    <input type="hidden" id="germinationPlantId" />
-    <input type="hidden" id="germinationEventKey" />
-    <p class="meta">Du kannst nur abhaken oder direkt eintragen, wie viele Pflanzen aktuell gekeimt/lebend sind.</p>
-    <label>Anzahl gekeimt/lebend
-      <input id="germinationAliveCount" type="number" min="0" />
-    </label>
-    <menu>
-      <button id="germinationOnlyDoneBtn" type="button" class="secondary">Nur abhaken</button>
-      <button id="cancelGerminationBtn" type="button" class="secondary">Abbrechen</button>
-      <button id="saveGerminationBtn" type="submit">Eintragen + abhaken</button>
     </menu>
   </form>
 </dialog>
