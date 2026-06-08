@@ -1,10 +1,10 @@
-# Gartentagebuch PWA v9
+# Gartentagebuch PWA v10
 
-Neu:
-- Stammdaten sind global pro Pflanzenart.
-- Wenn du im Stammdaten-Katalog Keimdauer, Pflanztiefe, Erntezeit, Abstand, Wuchshöhe oder Blüte änderst, werden alle passenden Einträge/Aussaaten aktualisiert.
-- Stammdaten-Katalog hat einen Bearbeiten-Button.
-- Ergänzt: Pflanzabstand, Wuchshöhe, Erntezeit früh/spät, Blüte früh/spät.
-- Backup enthält jetzt auch die globalen Stammdaten.
+Fixes:
+- Der Bearbeiten-Button im Stammdaten-Katalog steht jetzt direkt unter der Pflanzenart und ist auf Handy sichtbar.
+- Der Kalender startet fest mit Status „Nur offen“.
+- Oben steht v10, damit du erkennst, ob wirklich die neue Version geladen wurde.
 
-Update: Dateien in GitHub ersetzen und committen.
+Update:
+Alle Dateien in GitHub ersetzen und committen.
+Wenn auf dem Handy noch die alte Version kommt: App löschen, Safari Website-Daten für github.io löschen, neu öffnen und erneut zum Home-Bildschirm hinzufügen.

@@ -36,3 +36,7 @@ dialog{border:0;border-radius:20px;width:min(850px,95vw);box-shadow:0 25px 80px 
 
 .master-edit-btn{padding:.35rem .6rem;font-size:.85rem;border-radius:9px}
 .source-note{font-size:.82rem;color:var(--muted)}
+
+.version-tag{font-size:.9rem;color:var(--muted);font-weight:700}
+.catalog-edit-line{margin:.35rem 0}
+.master-edit-btn{display:inline-block}

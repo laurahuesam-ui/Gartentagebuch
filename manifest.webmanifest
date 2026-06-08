@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch mit global bearbeitbaren Stammdaten, Kalender, Backup und CSV.",
+  "description": "Privates Gartentagebuch v10 mit sichtbarem Stammdaten-Bearbeiten und Kalender default offen.",
   "icons": [
     {
       "src": "icon.svg",

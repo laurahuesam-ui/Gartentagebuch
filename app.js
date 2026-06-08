@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v9";
+const STORAGE_KEY = "gartentagebuch.v10";
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -155,6 +155,8 @@ function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
 
+  const rawV9 = localStorage.getItem("gartentagebuch.v9");
+  if(rawV9) return JSON.parse(rawV9);
   const rawV8 = localStorage.getItem("gartentagebuch.v8");
   if(rawV8) return JSON.parse(rawV8);
   const rawV7 = localStorage.getItem("gartentagebuch.v7");
@@ -576,11 +578,15 @@ function exportCsv(){
 function renderCatalog(){
   const cats = categories();
   $("catalogContent").innerHTML = `<table>
-    <thead><tr><th>Pflanzenart</th><th>Keimung</th><th>Pflanztiefe</th><th>Pflanzzeit</th><th>Abstand</th><th>Wuchshöhe</th><th>Blüte</th><th>Erntezeit</th><th>Ernte nach Tagen</th><th>Aktion</th></tr></thead>
+    <thead><tr><th>Pflanzenart</th><th>Keimung</th><th>Pflanztiefe</th><th>Pflanzzeit</th><th>Abstand</th><th>Wuchshöhe</th><th>Blüte</th><th>Erntezeit</th><th>Ernte nach Tagen</th></tr></thead>
     <tbody>${cats.map(cat=>{
       const m = getMaster(cat);
       return `<tr>
-        <td><strong>${escapeHtml(cat)}</strong><div class="source-note">${escapeHtml(m.sourceNote || "")}</div></td>
+        <td>
+          <strong>${escapeHtml(cat)}</strong>
+          <div class="catalog-edit-line"><button type="button" class="secondary master-edit-btn" data-edit-master="${escapeHtml(cat)}">Bearbeiten</button></div>
+          <div class="source-note">${escapeHtml(m.sourceNote || "")}</div>
+        </td>
         <td>${m.germinationMinDays || "–"} / ${m.germinationMaxDays || "–"} Tage</td>
         <td>${escapeHtml(m.plantingDepth || "–")}</td>
         <td>${escapeHtml(m.plantingTime || "–")}</td>
@@ -589,7 +595,6 @@ function renderCatalog(){
         <td>${escapeHtml(m.bloomStart || "–")} / ${escapeHtml(m.bloomEnd || "–")}</td>
         <td>${escapeHtml(m.harvestSeasonStart || "–")} / ${escapeHtml(m.harvestSeasonEnd || "–")}</td>
         <td>${m.harvestMinDays || "–"} / ${m.harvestMaxDays || "–"}</td>
-        <td><button type="button" class="secondary master-edit-btn" data-edit-master="${escapeHtml(cat)}">Bearbeiten</button></td>
       </tr>`;
     }).join("")}</tbody>
   </table>`;
@@ -779,4 +784,8 @@ $("backBtn").onclick=()=>{if(selectedEntryId){selectedEntryId=""; renderCategory
 let deferredPrompt; window.addEventListener("beforeinstallprompt", ev=>{ev.preventDefault(); deferredPrompt=ev; $("installBtn").classList.remove("hidden");});
 $("installBtn").onclick=async()=>{if(!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $("installBtn").classList.add("hidden");};
 if("serviceWorker" in navigator) navigator.serviceWorker.register("./service-worker.js");
+
+// Startansicht soll wirklich nur offene Kalenderpunkte zeigen.
+if($("calendarDoneFilter")) $("calendarDoneFilter").value = "open";
+
 render();
