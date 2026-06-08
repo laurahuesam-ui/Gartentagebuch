@@ -40,3 +40,7 @@ dialog{border:0;border-radius:20px;width:min(850px,95vw);box-shadow:0 25px 80px 
 .version-tag{font-size:.9rem;color:var(--muted);font-weight:700}
 .catalog-edit-line{margin:.35rem 0}
 .master-edit-btn{display:inline-block}
+
+.catalog-edit-grid{margin-bottom:1rem;padding:1rem;border:1px solid var(--line);border-radius:16px;background:white}
+.catalog-button-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.55rem;margin-top:.7rem}
+.catalog-edit-card{text-align:left!important}

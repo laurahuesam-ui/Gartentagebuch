@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v10";
+const STORAGE_KEY = "gartentagebuch.v11";
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -155,6 +155,8 @@ function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
 
+  const rawV10 = localStorage.getItem("gartentagebuch.v10");
+  if(rawV10) return JSON.parse(rawV10);
   const rawV9 = localStorage.getItem("gartentagebuch.v9");
   if(rawV9) return JSON.parse(rawV9);
   const rawV8 = localStorage.getItem("gartentagebuch.v8");
@@ -577,16 +579,21 @@ function exportCsv(){
 
 function renderCatalog(){
   const cats = categories();
+
+  $("catalogEditButtons").innerHTML = `
+    <h3>Stammdaten bearbeiten</h3>
+    <p class="meta">Klicke auf eine Pflanzenart, um Keimdauer, Pflanztiefe, Abstand, Wuchshöhe, Blüte und Erntezeit global zu ändern.</p>
+    <div class="catalog-button-grid">
+      ${cats.map(cat=>`<button type="button" class="secondary catalog-edit-card" data-edit-master="${escapeHtml(cat)}">${escapeHtml(cat)} bearbeiten</button>`).join("")}
+    </div>
+  `;
+
   $("catalogContent").innerHTML = `<table>
     <thead><tr><th>Pflanzenart</th><th>Keimung</th><th>Pflanztiefe</th><th>Pflanzzeit</th><th>Abstand</th><th>Wuchshöhe</th><th>Blüte</th><th>Erntezeit</th><th>Ernte nach Tagen</th></tr></thead>
     <tbody>${cats.map(cat=>{
       const m = getMaster(cat);
       return `<tr>
-        <td>
-          <strong>${escapeHtml(cat)}</strong>
-          <div class="catalog-edit-line"><button type="button" class="secondary master-edit-btn" data-edit-master="${escapeHtml(cat)}">Bearbeiten</button></div>
-          <div class="source-note">${escapeHtml(m.sourceNote || "")}</div>
-        </td>
+        <td><strong>${escapeHtml(cat)}</strong><div class="source-note">${escapeHtml(m.sourceNote || "")}</div></td>
         <td>${m.germinationMinDays || "–"} / ${m.germinationMaxDays || "–"} Tage</td>
         <td>${escapeHtml(m.plantingDepth || "–")}</td>
         <td>${escapeHtml(m.plantingTime || "–")}</td>

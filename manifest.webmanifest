@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch v10 mit sichtbarem Stammdaten-Bearbeiten und Kalender default offen.",
+  "description": "Privates Gartentagebuch v11 mit sichtbar bearbeitbaren Stammdaten.",
   "icons": [
     {
       "src": "icon.svg",
