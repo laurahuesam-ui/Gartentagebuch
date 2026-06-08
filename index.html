@@ -188,6 +188,64 @@
 </dialog>
 
 
+
+<dialog id="masterDataDialog">
+  <form id="masterDataForm">
+    <h2>Stammdaten bearbeiten</h2>
+    <input type="hidden" id="masterCategory" />
+
+    <div class="formgrid">
+      <label>Pflanzenart
+        <input id="masterCategoryLabel" disabled />
+      </label>
+      <label>Pflanzzeit
+        <input id="masterPlantingTime" placeholder="z.B. März–Mai" />
+      </label>
+      <label>Keimdauer frühestens in Tagen
+        <input id="masterGerminationMinDays" type="number" min="0" />
+      </label>
+      <label>Keimdauer spätestens in Tagen
+        <input id="masterGerminationMaxDays" type="number" min="0" />
+      </label>
+      <label>Pflanztiefe
+        <input id="masterPlantingDepth" placeholder="z.B. 1–2 cm" />
+      </label>
+      <label>Ernte frühestens nach Tagen
+        <input id="masterHarvestMinDays" type="number" min="0" />
+      </label>
+      <label>Ernte spätestens nach Tagen
+        <input id="masterHarvestMaxDays" type="number" min="0" />
+      </label>
+      <label>Erntezeit frühestens
+        <input id="masterHarvestSeasonStart" placeholder="z.B. Juni" />
+      </label>
+      <label>Erntezeit spätestens
+        <input id="masterHarvestSeasonEnd" placeholder="z.B. Oktober" />
+      </label>
+      <label>Blüte frühestens
+        <input id="masterBloomStart" placeholder="z.B. April" />
+      </label>
+      <label>Blüte spätestens
+        <input id="masterBloomEnd" placeholder="z.B. Mai" />
+      </label>
+      <label>Pflanzabstand
+        <input id="masterSpacing" placeholder="z.B. 30 × 30 cm" />
+      </label>
+      <label>Wuchshöhe
+        <input id="masterHeight" placeholder="z.B. 150–200 cm" />
+      </label>
+      <label>Quelle/Notiz
+        <input id="masterSourceNote" placeholder="z.B. Richtwert, sortenabhängig" />
+      </label>
+    </div>
+
+    <menu>
+      <button id="cancelMasterDataBtn" type="button" class="secondary">Abbrechen</button>
+      <button id="saveMasterDataBtn" type="submit">Global speichern</button>
+    </menu>
+  </form>
+</dialog>
+
 <dialog id="germinationDialog">
   <form id="germinationForm">
     <h2>Keimlinge eintragen</h2>
