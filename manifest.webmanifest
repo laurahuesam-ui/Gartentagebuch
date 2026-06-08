@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch v11 mit sichtbar bearbeitbaren Stammdaten.",
+  "description": "Privates Gartentagebuch v12 mit Knoblauch, Suche per Enter und Ernte neueste zuerst.",
   "icons": [
     {
       "src": "icon.svg",
