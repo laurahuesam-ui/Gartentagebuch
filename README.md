@@ -1,13 +1,11 @@
-# Gartentagebuch PWA v7
+# Gartentagebuch PWA v9
 
-Neu:
-- mobiles Dropdown-Menü
-- Stammdaten-Katalog
-- gekauft/gepflanzt statt Aussaat
-- Kauf-/Pflanzdatum und Größe beim Kauf
-- Kalendertermine abhaken
-- Kalenderfilter nach Status und Typ
-- Dashboard mit Prozent vom mittleren erwarteten Ertrag
-- „Neu säen / duplizieren“ kopiert nur Stammdaten, nicht Mengen/Ernten; Datum ist heute
+Reparatur-Version:
+- sucht automatisch alte lokale Speicherstände v1 bis v8
+- übernimmt den neuesten gefundenen Speicherstand nach v9
+- zusätzlicher Button: Rettungsdatei exportieren
 
-Update: Dateien in GitHub ersetzen und committen.
+Wichtig:
+- Nicht „Startdaten neu laden“ drücken, wenn du deine eigenen Daten retten willst.
+- Erst v9 hochladen, öffnen und prüfen.
+- Danach Backup exportieren.

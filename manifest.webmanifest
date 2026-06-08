@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch mit mobilem Menü, Katalog, Kalender-To-dos, Backup und CSV.",
+  "description": "Privates Gartentagebuch mit robuster Datenmigration, Backup, Katalog und Kalender.",
   "icons": [
     {
       "src": "icon.svg",
