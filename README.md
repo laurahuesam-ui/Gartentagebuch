@@ -1,8 +1,8 @@
-v16
-- 0 lebend: keine Keimung/Blüte/Ernte mehr im Kalender
-- Ausnahme: Noch pflanzbar bleibt sichtbar
-- Kalender zeigt:
-  offene Termine
-  erledigte Termine
-  insgesamt
-  Keimung/Blüte/Ernte/Pflanzbar Übersicht
+# Gartentagebuch PWA v17
+
+Neu:
+- Gartenjahr im Menü auswählbar.
+- Standardjahr ist 2026.
+- Neues Jahr erstellen übernimmt Stammdaten/Struktur.
+- Neues Jahr löscht Ernten, erledigte Kalenderpunkte, Mengen und Jahresdaten.
+- Backup enthält alle Jahre.

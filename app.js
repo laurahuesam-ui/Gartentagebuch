@@ -1,4 +1,21 @@
-const STORAGE_KEY = "gartentagebuch.v16";
+const STORAGE_KEY = "gartentagebuch.v17";
+const YEAR_LIST_KEY = "gartentagebuch.years.v17";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v17";
+let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
+function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
+function getYearList(){
+  try { const y = JSON.parse(localStorage.getItem(YEAR_LIST_KEY) || "[]"); if(y.length) return y; } catch {}
+  return ["2026"];
+}
+function saveYearList(years){ localStorage.setItem(YEAR_LIST_KEY, JSON.stringify([...new Set(years)].sort())); }
+function setCurrentYear(year){ currentYear=String(year); localStorage.setItem(CURRENT_YEAR_KEY,currentYear); }
+function updateYearSelect(){
+  if(!$("yearSelect")) return;
+  const years=getYearList();
+  $("yearSelect").innerHTML=years.map(y=>`<option value="${y}">${y}</option>`).join("");
+  $("yearSelect").value=currentYear;
+}
+
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -232,35 +249,22 @@ let selectedCategory = "";
 let selectedEntryId = "";
 
 function loadEntries(){
-  const raw = localStorage.getItem(STORAGE_KEY);
-  if(raw) return JSON.parse(raw);
+  const rawYear = localStorage.getItem(yearStorageKey());
+  if(rawYear) return JSON.parse(rawYear);
 
-  const rawV14 = localStorage.getItem("gartentagebuch.v14");
-  if(rawV14) return JSON.parse(rawV14);
-  const rawV13 = localStorage.getItem("gartentagebuch.v13");
-  if(rawV13) return JSON.parse(rawV13);
-  const rawV12 = localStorage.getItem("gartentagebuch.v12");
-  if(rawV12) return JSON.parse(rawV12);
-  const rawV11 = localStorage.getItem("gartentagebuch.v11");
-  if(rawV11) return JSON.parse(rawV11);
-  const rawV10 = localStorage.getItem("gartentagebuch.v10");
-  if(rawV10) return JSON.parse(rawV10);
-  const rawV9 = localStorage.getItem("gartentagebuch.v9");
-  if(rawV9) return JSON.parse(rawV9);
-  const rawV8 = localStorage.getItem("gartentagebuch.v8");
-  if(rawV8) return JSON.parse(rawV8);
-  const rawV7 = localStorage.getItem("gartentagebuch.v7");
-  if(rawV7) return JSON.parse(rawV7);
-  const rawV6 = localStorage.getItem("gartentagebuch.v6");
-  if(rawV6) return JSON.parse(rawV6);
-  const rawV5 = localStorage.getItem("gartentagebuch.v5");
-  if(rawV5) return JSON.parse(rawV5);
-
+  if(currentYear === "2026"){
+    const old = localStorage.getItem("gartentagebuch.v16") || localStorage.getItem("gartentagebuch.v15") || localStorage.getItem("gartentagebuch.v14");
+    if(old){
+      localStorage.setItem(yearStorageKey("2026"), old);
+      saveYearList([...getYearList(), "2026"]);
+      return JSON.parse(old);
+    }
+  }
   return parseSeedCsv();
 }
 
 function saveEntries(){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  localStorage.setItem(yearStorageKey(), JSON.stringify(entries));
   render();
 }
 
@@ -406,7 +410,7 @@ function boughtPlantDefaults(entry){
 
 function applyBoughtDefaultsToAll(){
   entries = entries.map(e => new GardenEntry(boughtPlantDefaults(e)));
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  localStorage.setItem(yearStorageKey(), JSON.stringify(entries));
 }
 
 function forceV14DataFixes(){
@@ -458,7 +462,7 @@ function forceV14DataFixes(){
 }
 forceV14DataFixes();
 applyBoughtDefaultsToAll();
-localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+localStorage.setItem(yearStorageKey(), JSON.stringify(entries));
 
 function filteredEntries(){
   const q = $("searchInput").value.trim().toLowerCase();
@@ -557,7 +561,7 @@ function defaultDateFromPlantingTime(text){
   const monthMap={"januar":0,"februar":1,"märz":2,"maerz":2,"april":3,"mai":4,"juni":5,"juli":6,"august":7,"september":8,"oktober":9,"november":10,"dezember":11};
   const lower=String(text).toLowerCase();
   for(const [name, idx] of Object.entries(monthMap)){
-    if(lower.includes(name)) return new Date(new Date().getFullYear(), idx, 15);
+    if(lower.includes(name)) return new Date(Number(currentYear), idx, 15);
   }
   return null;
 }
@@ -582,7 +586,7 @@ function monthNameToDate(monthName){
   const months = {"januar":0,"februar":1,"märz":2,"maerz":2,"april":3,"mai":4,"juni":5,"juli":6,"august":7,"september":8,"oktober":9,"november":10,"dezember":11};
   const key = String(monthName).trim().toLowerCase();
   if(!(key in months)) return null;
-  const year = new Date().getFullYear();
+  const year = Number(currentYear);
   return new Date(year, months[key], key === "mai" ? 15 : 1);
 }
 
@@ -909,8 +913,11 @@ function exportBackup(){
     app: "gartentagebuch-pwa",
     version: 5,
     exportedAt: new Date().toISOString(),
+    year: currentYear,
     entries,
-    masterData
+    masterData,
+    years: getYearList(),
+    allYearData: Object.fromEntries(getYearList().map(y => [y, JSON.parse(localStorage.getItem(yearStorageKey(y)) || "[]")]))
   };
 
   const blob = new Blob([JSON.stringify(backup, null, 2)], {type:"application/json;charset=utf-8"});
@@ -929,6 +936,15 @@ function importBackupFile(file){
   reader.onload = () => {
     try {
       const parsed = JSON.parse(reader.result);
+      if(parsed.allYearData){
+        const importedYears = Object.keys(parsed.allYearData);
+        saveYearList(importedYears.length ? importedYears : ["2026"]);
+        for(const y of importedYears){
+          localStorage.setItem(yearStorageKey(y), JSON.stringify(parsed.allYearData[y]));
+        }
+        setCurrentYear(parsed.year || importedYears[0] || "2026");
+        updateYearSelect();
+      }
       const importedEntries = Array.isArray(parsed) ? parsed : parsed.entries;
 
       if (!Array.isArray(importedEntries)) {
@@ -978,10 +994,54 @@ function addDays(d,days){const out=new Date(d); out.setDate(out.getDate()+Number
 function formatDate(d){return d.toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit",year:"numeric"});}
 function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 
+
+function createNewYear(){
+  const years=getYearList();
+  const nums=years.map(Number).filter(Boolean);
+  const suggested=String((nums.length?Math.max(...nums):2026)+1);
+  const year=prompt("Welches Jahr soll erstellt werden?", suggested);
+  if(!year) return;
+  if(!/^\\d{4}$/.test(year)){ alert("Bitte ein vierstelliges Jahr eingeben, z. B. 2027."); return; }
+  if(years.includes(year)){ setCurrentYear(year); loadYear(year); return; }
+
+  const template=entries.map(e=>new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry({
+    ...e,
+    id: crypto.randomUUID(),
+    harvests: [],
+    doneEvents: {},
+    sownCount: 0,
+    aliveCount: 0,
+    sowingDate: "",
+    purchaseDate: "",
+    sowingEstimated: false,
+    notes: "",
+    variety: e.isBought ? e.variety : e.category
+  }))));
+
+  saveYearList([...years, year]);
+  localStorage.setItem(yearStorageKey(year), JSON.stringify(template));
+  setCurrentYear(year);
+  entries=template;
+  updateYearSelect();
+  saveEntries();
+  alert(`Jahr ${year} wurde erstellt.`);
+}
+
+function loadYear(year){
+  setCurrentYear(year);
+  entries=loadEntries().map(e=>new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(normalizeEntryCategory(e)))));
+  forceV14DataFixes();
+  applyBoughtDefaultsToAll();
+  updateYearSelect();
+  render();
+}
+
 $("menuBtn").onclick=()=>$("menuPanel").classList.toggle("hidden");
 document.addEventListener("click",(ev)=>{
   if($("menuPanel") && !$("menuPanel").contains(ev.target) && ev.target !== $("menuBtn")) $("menuPanel").classList.add("hidden");
 });
+$("yearSelect").onchange=(ev)=>loadYear(ev.target.value);
+$("newYearBtn").onclick=()=>createNewYear();
 $("catalogBtn").onclick=()=>{ $("menuPanel").classList.add("hidden"); openCatalog(); };
 $("closeCatalogBtn").onclick=()=> $("catalogView").classList.add("hidden");
 $("masterDataForm").onsubmit=saveMasterDataFromForm;
@@ -1023,5 +1083,7 @@ if("serviceWorker" in navigator) navigator.serviceWorker.register("./service-wor
 
 // Startansicht soll wirklich nur offene Kalenderpunkte zeigen.
 if($("calendarDoneFilter")) $("calendarDoneFilter").value = "open";
+saveYearList([...getYearList(), currentYear]);
+updateYearSelect();
 
 render();

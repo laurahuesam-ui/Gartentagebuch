@@ -12,11 +12,15 @@
 <header class="app-header">
   <div>
     <p class="eyebrow">Private PWA · lokale Datenbank</p>
-    <h1>Gartentagebuch <small class="version-tag">v15</small></h1>
+    <h1>Gartentagebuch <small class="version-tag">v17</small></h1>
   </div>
   <div class="header-actions menu-wrap">
     <button id="menuBtn" class="secondary" type="button">☰ Menü</button>
     <div id="menuPanel" class="menu-panel hidden">
+      <label class="menu-label">Gartenjahr
+        <select id="yearSelect"></select>
+      </label>
+      <button id="newYearBtn" class="secondary" type="button">Neues Jahr erstellen</button>
       <button id="catalogBtn" class="secondary" type="button">Stammdaten-Katalog</button>
       <button id="exportCsvBtn" class="secondary" type="button">CSV herunterladen</button>
       <button id="exportBackupBtn" class="secondary" type="button">Backup exportieren</button>

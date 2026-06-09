@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v16 Kalenderstatistik und 0-lebend Filter.",
+  "description": "Gartentagebuch v17 mit Gartenjahr-Auswahl.",
   "icons": [
     {
       "src": "icon.svg",
