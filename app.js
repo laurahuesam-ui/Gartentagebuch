@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v20";
-const YEAR_LIST_KEY = "gartentagebuch.years.v20";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v20";
+const STORAGE_KEY = "gartentagebuch.v21";
+const YEAR_LIST_KEY = "gartentagebuch.years.v21";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v21";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -254,9 +254,11 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v20.2026") ||
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v20") ||
       localStorage.getItem("gartentagebuch.v19") ||
       localStorage.getItem("gartentagebuch.v18") ||
       localStorage.getItem("gartentagebuch.v17") ||
@@ -394,7 +396,6 @@ function isWoodyOrPerennialPurchase(entry){
 function boughtPlantDefaults(entry){
   if(!entry.isBought || isWoodyOrPerennialPurchase(entry)) return entry;
   const cat = entry.category;
-  const today = new Date().toISOString().slice(0,10);
   const defaults = {
     "Tomate": {purchaseSize:"gekaufte Jungpflanze ca. 40–100 cm, meist kurz vor/bei Blüte", harvestMinDays:35, harvestMaxDays:90, bloomStart:"Mai", bloomEnd:"Juli"},
     "Paprika": {purchaseSize:"gekaufte Jungpflanze ca. 20–50 cm, oft kurz vor Blüte", harvestMinDays:50, harvestMaxDays:110, bloomStart:"Mai", bloomEnd:"August"},
@@ -409,7 +410,8 @@ function boughtPlantDefaults(entry){
   const d = defaults[cat];
   if(!d) return entry;
   entry.purchaseSize = entry.purchaseSize || d.purchaseSize;
-  entry.purchaseDate = entry.purchaseDate || today;
+  // Kaufdatum nicht automatisch wieder setzen, wenn du es bewusst gelöscht hast.
+  // Leer bleibt leer; nur Größe/Entwicklungsstand wird ergänzt.
   entry.harvestMinDays = d.harvestMinDays;
   entry.harvestMaxDays = d.harvestMaxDays;
   entry.bloomStart = d.bloomStart;

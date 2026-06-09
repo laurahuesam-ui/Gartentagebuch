@@ -1,13 +1,9 @@
-# Gartentagebuch PWA v20
+# Gartentagebuch PWA v21
 
 Fix:
-- Der alte Browser-Prompt für „Neues Jahr erstellen“ ist entfernt.
-- Prüfung alter Jahresprompt: []
-- Neues Gartenjahr wird über ein eigenes Dialogfenster erstellt.
-- Oben steht v20 zur Kontrolle.
-- Bestehende Daten werden als Gartenjahr 2026 übernommen.
-- Neue Jahre übernehmen Struktur/Stammdaten, aber keine Ernten, Mengen, Aussaat-/Kaufdaten oder erledigten Termine.
+- Kaufdatum kann jetzt gelöscht werden und bleibt leer.
+- Die App setzt bei gekauften Jungpflanzen nicht automatisch wieder das heutige Datum ein.
+- Größe/Entwicklungsstand für gekaufte Pflanzen bleibt weiterhin erhalten.
 
 Update:
 Alle Dateien in GitHub ersetzen und committen.
-Wenn nicht v20 sichtbar ist: Cache/Website-Daten löschen.
