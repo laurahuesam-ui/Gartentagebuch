@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v15";
+const STORAGE_KEY = "gartentagebuch.v16";
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -531,6 +531,12 @@ function buildCalendarEvents(){
       plantingWindowSeen.add(e.category);
       events.push(makeEvent(e, "plantingWindow", plantUntilOnly, "Noch pflanzbar", `${e.category}: noch pflanzbar bis ${formatDate(plantUntilOnly)}`, e.plantingTime || "Pflanzzeit"));
     }
+    const alive = Number(e.aliveCount || 0);
+
+    if(alive <= 0){
+      continue;
+    }
+
     if(!baseDate) continue;
     events.push(makeEvent(e, "base", baseDate, e.isBought ? "Kauf/Pflanzung" : (e.sowingEstimated ? "Aussaat ca." : "Aussaat"), `${e.variety}`, `${e.category} · ${e.sownCount} ${e.isBought ? "gekauft/gepflanzt" : "gesät/gepflanzt"}${e.sowingEstimated ? " · geschätzt" : ""}`));
     const bloomStartDate = monthNameToDate(e.bloomStart);
