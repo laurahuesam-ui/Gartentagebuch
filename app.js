@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v17";
-const YEAR_LIST_KEY = "gartentagebuch.years.v17";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v17";
+const STORAGE_KEY = "gartentagebuch.v18";
+const YEAR_LIST_KEY = "gartentagebuch.years.v18";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v18";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -253,13 +253,18 @@ function loadEntries(){
   if(rawYear) return JSON.parse(rawYear);
 
   if(currentYear === "2026"){
-    const old = localStorage.getItem("gartentagebuch.v16") || localStorage.getItem("gartentagebuch.v15") || localStorage.getItem("gartentagebuch.v14");
+    const old = localStorage.getItem("gartentagebuch.v17.2026")
+      || localStorage.getItem("gartentagebuch.v17")
+      || localStorage.getItem("gartentagebuch.v16")
+      || localStorage.getItem("gartentagebuch.v15")
+      || localStorage.getItem("gartentagebuch.v14");
     if(old){
       localStorage.setItem(yearStorageKey("2026"), old);
       saveYearList([...getYearList(), "2026"]);
       return JSON.parse(old);
     }
   }
+
   return parseSeedCsv();
 }
 
@@ -996,35 +1001,48 @@ function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","
 
 
 function createNewYear(){
-  const years=getYearList();
-  const nums=years.map(Number).filter(Boolean);
-  const suggested=String((nums.length?Math.max(...nums):2026)+1);
-  const year=prompt("Welches Jahr soll erstellt werden?", suggested);
+  const years = getYearList();
+  const nums = years.map(Number).filter(Boolean);
+  const suggested = String((nums.length ? Math.max(...nums) : 2026) + 1);
+  const year = prompt("Welches Gartenjahr soll erstellt werden?", suggested);
   if(!year) return;
-  if(!/^\\d{4}$/.test(year)){ alert("Bitte ein vierstelliges Jahr eingeben, z. B. 2027."); return; }
-  if(years.includes(year)){ setCurrentYear(year); loadYear(year); return; }
 
-  const template=entries.map(e=>new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry({
-    ...e,
-    id: crypto.randomUUID(),
-    harvests: [],
-    doneEvents: {},
-    sownCount: 0,
-    aliveCount: 0,
-    sowingDate: "",
-    purchaseDate: "",
-    sowingEstimated: false,
-    notes: "",
-    variety: e.isBought ? e.variety : e.category
-  }))));
+  const cleanYear = String(year).trim();
+  if(!/^\\d{4}$/.test(cleanYear)){
+    alert("Bitte ein vierstelliges Jahr eingeben, z. B. 2027.");
+    return;
+  }
 
-  saveYearList([...years, year]);
-  localStorage.setItem(yearStorageKey(year), JSON.stringify(template));
-  setCurrentYear(year);
-  entries=template;
+  if(years.includes(cleanYear)){
+    setCurrentYear(cleanYear);
+    loadYear(cleanYear);
+    return;
+  }
+
+  const template = entries.map(e => {
+    const copy = {
+      ...e,
+      id: crypto.randomUUID(),
+      harvests: [],
+      doneEvents: {},
+      sownCount: 0,
+      aliveCount: 0,
+      sowingDate: "",
+      purchaseDate: "",
+      sowingEstimated: false,
+      notes: "",
+      variety: e.isBought ? e.variety : e.category
+    };
+    return new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(copy)));
+  });
+
+  saveYearList([...years, cleanYear]);
+  localStorage.setItem(yearStorageKey(cleanYear), JSON.stringify(template));
+  setCurrentYear(cleanYear);
+  entries = template;
   updateYearSelect();
   saveEntries();
-  alert(`Jahr ${year} wurde erstellt.`);
+  alert(`Gartenjahr ${cleanYear} wurde erstellt. Stammdaten/Struktur wurden übernommen, Ernten und Jahresdaten geleert.`);
 }
 
 function loadYear(year){
@@ -1040,8 +1058,8 @@ $("menuBtn").onclick=()=>$("menuPanel").classList.toggle("hidden");
 document.addEventListener("click",(ev)=>{
   if($("menuPanel") && !$("menuPanel").contains(ev.target) && ev.target !== $("menuBtn")) $("menuPanel").classList.add("hidden");
 });
-$("yearSelect").onchange=(ev)=>loadYear(ev.target.value);
-$("newYearBtn").onclick=()=>createNewYear();
+if($("yearSelect")) $("yearSelect").onchange=(ev)=>loadYear(ev.target.value);
+if($("newYearBtn")) $("newYearBtn").onclick=()=>createNewYear();
 $("catalogBtn").onclick=()=>{ $("menuPanel").classList.add("hidden"); openCatalog(); };
 $("closeCatalogBtn").onclick=()=> $("catalogView").classList.add("hidden");
 $("masterDataForm").onsubmit=saveMasterDataFromForm;
@@ -1083,7 +1101,7 @@ if("serviceWorker" in navigator) navigator.serviceWorker.register("./service-wor
 
 // Startansicht soll wirklich nur offene Kalenderpunkte zeigen.
 if($("calendarDoneFilter")) $("calendarDoneFilter").value = "open";
-saveYearList([...getYearList(), currentYear]);
+saveYearList([...getYearList(), "2026", currentYear]);
 updateYearSelect();
 
 render();
