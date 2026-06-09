@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v18 mit reparierter Gartenjahr-Erstellung.",
+  "description": "Gartentagebuch v20 mit sicherem Dialog für neues Gartenjahr.",
   "icons": [
     {
       "src": "icon.svg",

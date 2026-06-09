@@ -12,7 +12,7 @@
 <header class="app-header">
   <div>
     <p class="eyebrow">Private PWA · lokale Datenbank</p>
-    <h1>Gartentagebuch <small class="version-tag">v18</small></h1>
+    <h1>Gartentagebuch <small class="version-tag">v20</small></h1>
   </div>
   <div class="header-actions menu-wrap">
     <button id="menuBtn" class="secondary" type="button">☰ Menü</button>
@@ -194,6 +194,22 @@
 </dialog>
 
 
+
+
+
+<dialog id="yearDialog">
+  <form id="yearForm">
+    <h2>Neues Gartenjahr erstellen</h2>
+    <p class="meta">Das neue Jahr übernimmt Pflanzenarten, Sorten/Struktur und Stammdaten. Ernten, Mengen, Aussaatdaten und erledigte Kalenderpunkte werden geleert.</p>
+    <label>Neues Gartenjahr
+      <input id="newYearInput" type="number" min="2026" step="1" placeholder="z.B. 2027" required />
+    </label>
+    <menu>
+      <button id="cancelYearBtn" type="button" class="secondary">Abbrechen</button>
+      <button id="saveYearBtn" type="submit">Jahr erstellen</button>
+    </menu>
+  </form>
+</dialog>
 
 <dialog id="masterDataDialog">
   <form id="masterDataForm">

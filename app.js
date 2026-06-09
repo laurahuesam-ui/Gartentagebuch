@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v18";
-const YEAR_LIST_KEY = "gartentagebuch.years.v18";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v18";
+const STORAGE_KEY = "gartentagebuch.v20";
+const YEAR_LIST_KEY = "gartentagebuch.years.v20";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v20";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -253,11 +253,16 @@ function loadEntries(){
   if(rawYear) return JSON.parse(rawYear);
 
   if(currentYear === "2026"){
-    const old = localStorage.getItem("gartentagebuch.v17.2026")
-      || localStorage.getItem("gartentagebuch.v17")
-      || localStorage.getItem("gartentagebuch.v16")
-      || localStorage.getItem("gartentagebuch.v15")
-      || localStorage.getItem("gartentagebuch.v14");
+    const old =
+      localStorage.getItem("gartentagebuch.v19.2026") ||
+      localStorage.getItem("gartentagebuch.v18.2026") ||
+      localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v19") ||
+      localStorage.getItem("gartentagebuch.v18") ||
+      localStorage.getItem("gartentagebuch.v17") ||
+      localStorage.getItem("gartentagebuch.v16") ||
+      localStorage.getItem("gartentagebuch.v15") ||
+      localStorage.getItem("gartentagebuch.v14");
     if(old){
       localStorage.setItem(yearStorageKey("2026"), old);
       saveYearList([...getYearList(), "2026"]);
@@ -1000,21 +1005,26 @@ function formatDate(d){return d.toLocaleDateString("de-DE",{day:"2-digit",month:
 function escapeHtml(v){return String(v).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
 
 
-function createNewYear(){
+function openNewYearDialog(){
   const years = getYearList();
   const nums = years.map(Number).filter(Boolean);
   const suggested = String((nums.length ? Math.max(...nums) : 2026) + 1);
-  const year = prompt("Welches Gartenjahr soll erstellt werden?", suggested);
-  if(!year) return;
+  $("newYearInput").value = suggested;
+  $("yearDialog").showModal();
+}
 
-  const cleanYear = String(year).trim();
-  if(!/^\\d{4}$/.test(cleanYear)){
+function createNewYearFromValue(yearValue){
+  const years = getYearList();
+  const cleanYear = String(yearValue || "").trim();
+
+  if(!/^\d{4}$/.test(cleanYear)){
     alert("Bitte ein vierstelliges Jahr eingeben, z. B. 2027.");
     return;
   }
 
   if(years.includes(cleanYear)){
     setCurrentYear(cleanYear);
+    $("yearDialog").close();
     loadYear(cleanYear);
     return;
   }
@@ -1041,15 +1051,71 @@ function createNewYear(){
   setCurrentYear(cleanYear);
   entries = template;
   updateYearSelect();
+  $("yearDialog").close();
   saveEntries();
-  alert(`Gartenjahr ${cleanYear} wurde erstellt. Stammdaten/Struktur wurden übernommen, Ernten und Jahresdaten geleert.`);
+  alert(`Gartenjahr ${cleanYear} wurde erstellt.`);
+}
+
+function openNewYearDialog(){
+  const years = getYearList();
+  const nums = years.map(Number).filter(Boolean);
+  const suggested = String((nums.length ? Math.max(...nums) : 2026) + 1);
+  $("newYearInput").value = suggested;
+  $("yearDialog").showModal();
+}
+
+function createNewYearFromValue(yearValue){
+  const years = getYearList();
+  const cleanYear = String(yearValue || "").trim();
+
+  if(!/^\d{4}$/.test(cleanYear)){
+    alert("Bitte ein vierstelliges Jahr eingeben, z. B. 2027.");
+    return;
+  }
+
+  if(years.includes(cleanYear)){
+    setCurrentYear(cleanYear);
+    $("yearDialog").close();
+    loadYear(cleanYear);
+    return;
+  }
+
+  const template = entries.map(e => {
+    const copy = {
+      ...e,
+      id: crypto.randomUUID(),
+      harvests: [],
+      doneEvents: {},
+      sownCount: 0,
+      aliveCount: 0,
+      sowingDate: "",
+      purchaseDate: "",
+      sowingEstimated: false,
+      notes: "",
+      variety: e.isBought ? e.variety : e.category
+    };
+    return new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(copy)));
+  });
+
+  saveYearList([...years, cleanYear]);
+  localStorage.setItem(yearStorageKey(cleanYear), JSON.stringify(template));
+  setCurrentYear(cleanYear);
+  entries = template;
+  updateYearSelect();
+  $("yearDialog").close();
+  saveEntries();
+  alert(`Gartenjahr ${cleanYear} wurde erstellt.`);
+}
+
+function createNewYear(){
+  openNewYearDialog();
 }
 
 function loadYear(year){
   setCurrentYear(year);
-  entries=loadEntries().map(e=>new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(normalizeEntryCategory(e)))));
-  forceV14DataFixes();
-  applyBoughtDefaultsToAll();
+  entries = loadEntries().map(e => new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(normalizeEntryCategory(e)))));
+  if(typeof forceV14DataFixes === "function") forceV14DataFixes();
+  if(typeof applyBoughtDefaultsToAll === "function") applyBoughtDefaultsToAll();
   updateYearSelect();
   render();
 }
@@ -1060,6 +1126,8 @@ document.addEventListener("click",(ev)=>{
 });
 if($("yearSelect")) $("yearSelect").onchange=(ev)=>loadYear(ev.target.value);
 if($("newYearBtn")) $("newYearBtn").onclick=()=>createNewYear();
+if($("yearForm")) $("yearForm").onsubmit=(ev)=>{ev.preventDefault(); createNewYearFromValue($("newYearInput").value);};
+if($("cancelYearBtn")) $("cancelYearBtn").onclick=()=>$("yearDialog").close();
 $("catalogBtn").onclick=()=>{ $("menuPanel").classList.add("hidden"); openCatalog(); };
 $("closeCatalogBtn").onclick=()=> $("catalogView").classList.add("hidden");
 $("masterDataForm").onsubmit=saveMasterDataFromForm;
