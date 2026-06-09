@@ -1,10 +1,11 @@
-# Gartentagebuch PWA v14
+# Gartentagebuch PWA v15
 
-Fix:
-- Erzwingt Update vorhandener lokaler Daten:
-  - Ananaskirsche gekauft wird eingefügt.
-  - Knoblauch wird eingefügt.
-  - Erdbeer-Himbeer/Rubus illecebrosus wird eigene Pflanzenart.
-  - Blaubeer-Sorten bekommen spezifische Werte.
-- Kalender nutzt Pflanzzeit als Fallback, wenn kein Aussaat-/Kaufdatum vorhanden ist.
-- „Noch pflanzbar bis …“ wird aus Pflanzzeit abgeleitet.
+Neu:
+- Gekaufte Gemüse-/Jungpflanzen bekommen realistischeren Entwicklungsstand:
+  z. B. Tomaten gekauft ca. 40–100 cm und kurz vor/bei Blüte.
+- Erntefenster für gekaufte Jungpflanzen wird verkürzt.
+- Sträucher/Bäume bleiben bei normaler Blüte-/Erntezeit.
+- Kalender-Dropdown: Aussaat entfernt.
+- Kalender-Dropdown: Blütezeit ergänzt.
+
+Update: Dateien in GitHub ersetzen und committen.

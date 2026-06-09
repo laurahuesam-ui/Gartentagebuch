@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch v14 mit erzwungener Datenmigration und Pflanzzeit-Fallback.",
+  "description": "Privates Gartentagebuch v15 mit gekauften Jungpflanzen-Defaults und Blütezeitfilter.",
   "icons": [
     {
       "src": "icon.svg",

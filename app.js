@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v14";
+const STORAGE_KEY = "gartentagebuch.v15";
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -235,6 +235,8 @@ function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
 
+  const rawV14 = localStorage.getItem("gartentagebuch.v14");
+  if(rawV14) return JSON.parse(rawV14);
   const rawV13 = localStorage.getItem("gartentagebuch.v13");
   if(rawV13) return JSON.parse(rawV13);
   const rawV12 = localStorage.getItem("gartentagebuch.v12");
@@ -369,6 +371,44 @@ function timingDefaults(category, name){
 function categories(){ return [...new Set(entries.map(e=>e.category))].sort((a,b)=>a.localeCompare(b,"de")); }
 
 
+
+function isWoodyOrPerennialPurchase(entry){
+  const cat = entry.category;
+  return ["Blaubeere","Himbeere","Brombeere","Erdbeer-Himbeer","Apfel","Birne","Erdbeere"].includes(cat);
+}
+
+function boughtPlantDefaults(entry){
+  if(!entry.isBought || isWoodyOrPerennialPurchase(entry)) return entry;
+  const cat = entry.category;
+  const today = new Date().toISOString().slice(0,10);
+  const defaults = {
+    "Tomate": {purchaseSize:"gekaufte Jungpflanze ca. 40–100 cm, meist kurz vor/bei Blüte", harvestMinDays:35, harvestMaxDays:90, bloomStart:"Mai", bloomEnd:"Juli"},
+    "Paprika": {purchaseSize:"gekaufte Jungpflanze ca. 20–50 cm, oft kurz vor Blüte", harvestMinDays:50, harvestMaxDays:110, bloomStart:"Mai", bloomEnd:"August"},
+    "Chili": {purchaseSize:"gekaufte Jungpflanze ca. 20–50 cm, oft kurz vor Blüte", harvestMinDays:50, harvestMaxDays:120, bloomStart:"Mai", bloomEnd:"September"},
+    "Gurke": {purchaseSize:"gekaufte Jungpflanze ca. 15–40 cm, schnell blüh-/erntereif", harvestMinDays:25, harvestMaxDays:60, bloomStart:"Mai", bloomEnd:"August"},
+    "Zucchini": {purchaseSize:"gekaufte Jungpflanze ca. 20–40 cm, schnell blüh-/erntereif", harvestMinDays:25, harvestMaxDays:60, bloomStart:"Mai", bloomEnd:"September"},
+    "Kohlrabi": {purchaseSize:"gekaufte Jungpflanze ca. 10–20 cm", harvestMinDays:25, harvestMaxDays:50, bloomStart:"", bloomEnd:""},
+    "Salat": {purchaseSize:"gekaufte Jungpflanze ca. 8–15 cm", harvestMinDays:20, harvestMaxDays:45, bloomStart:"", bloomEnd:""},
+    "Rosmarin": {purchaseSize:"gekaufte Topfpflanze, Größe je nach Topf", harvestMinDays:0, harvestMaxDays:0, bloomStart:"März", bloomEnd:"Juni"},
+    "Ananaskirsche": {purchaseSize:"gekaufte Jungpflanze ca. 15 cm", harvestMinDays:60, harvestMaxDays:110, bloomStart:"Juni", bloomEnd:"September"}
+  };
+  const d = defaults[cat];
+  if(!d) return entry;
+  entry.purchaseSize = entry.purchaseSize || d.purchaseSize;
+  entry.purchaseDate = entry.purchaseDate || today;
+  entry.harvestMinDays = d.harvestMinDays;
+  entry.harvestMaxDays = d.harvestMaxDays;
+  entry.bloomStart = d.bloomStart;
+  entry.bloomEnd = d.bloomEnd;
+  entry.sourceNote = `${entry.sourceNote || ""} Gekauft: Entwicklungsstand als Jungpflanze berücksichtigt.`.trim();
+  return entry;
+}
+
+function applyBoughtDefaultsToAll(){
+  entries = entries.map(e => new GardenEntry(boughtPlantDefaults(e)));
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+}
+
 function forceV14DataFixes(){
   // vorhandene lokale Daten korrigieren, nicht nur neue Startdaten
   entries = entries.map(raw => {
@@ -379,7 +419,7 @@ function forceV14DataFixes(){
     if((e.variety || "").toLowerCase().includes("knoblauch")){
       e.category = "Knoblauch";
     }
-    e = new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(e)));
+    e = new GardenEntry(boughtPlantDefaults(applyVarietySpecificMaster(applyMasterToEntry(e))));
     return e;
   });
 
@@ -417,6 +457,7 @@ function forceV14DataFixes(){
   }
 }
 forceV14DataFixes();
+applyBoughtDefaultsToAll();
 localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 
 function filteredEntries(){
@@ -669,7 +710,7 @@ function savePlantFromForm(ev){
   const id=$("plantId").value; const old=entries.find(e=>e.id===id);
   const locations=[]; if($("locHochbeet").checked) locations.push("Hochbeet"); if($("locBoden").checked) locations.push("Boden"); if($("locTopf").checked) locations.push("Topf");
   let entry=new GardenEntry({id:id||undefined,category:$("category").value,variety:$("variety").value,locations,sownCount:$("sownCount").value,aliveCount:$("aliveCount").value,sowingDate:$("sowingDate").value,sowingEstimated:$("sowingEstimated").checked,isBought:$("isBought").checked,purchaseDate:$("purchaseDate").value,purchaseSize:$("purchaseSize").value,bloomStart:$("bloomStart").value,bloomEnd:$("bloomEnd").value,doneEvents:old?.doneEvents||{},plantingTime:$("plantingTime").value,germinationMinDays:$("germinationMinDays").value,germinationMaxDays:$("germinationMaxDays").value,plantingDepth:$("plantingDepth").value,harvestMinDays:$("harvestMinDays").value,harvestMaxDays:$("harvestMaxDays").value,yieldMin:$("yieldMin").value,yieldMed:$("yieldMed").value,yieldMax:$("yieldMax").value,literNow:$("literNow").value,literLater:$("literLater").value,notes:$("notes").value,harvests:old?.harvests||[]});
-  entry = new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(entry)));
+  entry = new GardenEntry(boughtPlantDefaults(applyVarietySpecificMaster(applyMasterToEntry(entry))));
   if(old) entries=entries.map(e=>e.id===id?entry:e); else entries.push(entry);
   selectedCategory=entry.category; selectedEntryId=entry.id; $("plantDialog").close(); saveEntries();
 }
