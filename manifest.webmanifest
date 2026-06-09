@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Privates Gartentagebuch v13 mit Pflanzzeit-Kalender und sortenspezifischen Strauchdaten.",
+  "description": "Privates Gartentagebuch v14 mit erzwungener Datenmigration und Pflanzzeit-Fallback.",
   "icons": [
     {
       "src": "icon.svg",

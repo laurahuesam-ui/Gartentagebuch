@@ -1,11 +1,10 @@
-# Gartentagebuch PWA v13
+# Gartentagebuch PWA v14
 
-Neu:
-- Neue Aussaat übernimmt nur das Aussaatdatum als Untereintrag.
-- Ananaskirsche gekauft ergänzt, ca. 15 cm beim Kauf.
-- Strauch-/Baum-Stammdaten verbessert:
-  BerryBux kompakt, Bluecrop größer, Brigitta Blue mittelgroß.
-- Kalender zeigt zusätzlich „Noch pflanzbar bis …“, abgeleitet aus der Pflanzzeit.
-- Kalenderfilter enthält „Noch pflanzbar“.
-
-Update: Dateien in GitHub ersetzen und committen.
+Fix:
+- Erzwingt Update vorhandener lokaler Daten:
+  - Ananaskirsche gekauft wird eingefügt.
+  - Knoblauch wird eingefügt.
+  - Erdbeer-Himbeer/Rubus illecebrosus wird eigene Pflanzenart.
+  - Blaubeer-Sorten bekommen spezifische Werte.
+- Kalender nutzt Pflanzzeit als Fallback, wenn kein Aussaat-/Kaufdatum vorhanden ist.
+- „Noch pflanzbar bis …“ wird aus Pflanzzeit abgeleitet.

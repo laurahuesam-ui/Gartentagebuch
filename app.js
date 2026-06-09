@@ -1,4 +1,4 @@
-const STORAGE_KEY = "gartentagebuch.v13";
+const STORAGE_KEY = "gartentagebuch.v14";
 const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
@@ -43,6 +43,16 @@ function defaultMasterData(){
 
 let masterData = loadMasterData();
 
+function forceMasterV14(){
+  masterData["Ananaskirsche"] = {germinationMinDays:7,germinationMaxDays:21,plantingDepth:"0,5–1 cm",harvestMinDays:90,harvestMaxDays:140,plantingTime:"Vorziehen Februar–April, nach Eisheiligen raus",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Juni",bloomEnd:"September",spacing:"60–90 cm",height:"30–60 cm",sourceNote:"Physalis pruinosa; gekaufte Pflanze ca. 15 cm als eigener Eintrag"};
+  masterData["Erdbeer-Himbeer"] = {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, nicht Saat",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Frühjahr oder Herbst",harvestSeasonStart:"August",harvestSeasonEnd:"September",bloomStart:"Juni",bloomEnd:"Juli",spacing:"60 cm, Reihen bis 300 cm",height:"30–60 cm",sourceNote:"Rubus illecebrosus, mehrjährig; kann sich ausbreiten"};
+  masterData["Blaubeere"] = {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, Ballen leicht erhöht, saure Erde",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Frühjahr oder Herbst, Topfware frostfrei",harvestSeasonStart:"Juli",harvestSeasonEnd:"September",bloomStart:"April",bloomEnd:"Mai",spacing:"80–150 cm",height:"je nach Sorte 60–200 cm",sourceNote:"BerryBux kompakt, Bluecrop deutlich größer, Brigitta mittel bis hoch"};
+  masterData["Knoblauch"] = {germinationMinDays:14,germinationMaxDays:35,plantingDepth:"5–7 cm",harvestMinDays:240,harvestMaxDays:300,plantingTime:"Herbstpflanzung September–November, alternativ Frühjahr",harvestSeasonStart:"Juni",harvestSeasonEnd:"Juli",bloomStart:"Mai",bloomEnd:"Juni",spacing:"10–15 cm, Reihen 20–30 cm",height:"40–90 cm",sourceNote:"Zehen im Herbst stecken; Ernte, wenn das Laub gelb wird"};
+  saveMasterData();
+}
+forceMasterV14();
+
+
 function patchMasterDataV13(){
   const updates = {
     "Ananaskirsche": {germinationMinDays:7,germinationMaxDays:21,plantingDepth:"0,5–1 cm",harvestMinDays:90,harvestMaxDays:140,plantingTime:"Vorziehen Februar–April, nach Eisheiligen raus",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Juni",bloomEnd:"September",spacing:"60–90 cm",height:"30–60 cm",sourceNote:"Physalis pruinosa; gekaufte Pflanze ca. 15 cm als eigene Sorte/Eintrag"},
@@ -56,47 +66,14 @@ function patchMasterDataV13(){
 patchMasterDataV13();
 
 function applyVarietySpecificMaster(entry){
-  const n = (entry.variety || "").toLowerCase();
-  if(entry.category === "Blaubeere"){
-    if(n.includes("berrybux") || n.includes("angustifolium")){
-      entry.height = "30–60 cm";
-      entry.spacing = "60 cm";
-      entry.harvestSeasonStart = "Juli";
-      entry.harvestSeasonEnd = "August";
-      entry.bloomStart = "Mai";
-      entry.bloomEnd = "Mai";
-      entry.sourceNote = "BerryBux/Vaccinium angustifolium: kompakt, deutlich kleiner als Bluecrop";
-    } else if(n.includes("bluecorp") || n.includes("bluecrop")){
-      entry.height = "150–200 cm";
-      entry.spacing = "120–150 cm";
-      entry.harvestSeasonStart = "Juli";
-      entry.harvestSeasonEnd = "August";
-      entry.bloomStart = "April";
-      entry.bloomEnd = "Mai";
-      entry.sourceNote = "Bluecrop: hoher, kräftiger Kulturheidelbeer-Strauch";
-    } else if(n.includes("brigitta")){
-      entry.height = "120–140 cm";
-      entry.spacing = "100–150 cm";
-      entry.harvestSeasonStart = "August";
-      entry.harvestSeasonEnd = "September";
-      entry.bloomStart = "April";
-      entry.bloomEnd = "Mai";
-      entry.sourceNote = "Brigitta Blue: spätere Sorte, ca. 120–140 cm";
-    } else if(n.includes("hortblue")){
-      entry.height = "60–100 cm";
-      entry.spacing = "60–100 cm";
-      entry.harvestSeasonStart = "Juli";
-      entry.harvestSeasonEnd = "September";
-      entry.bloomStart = "April";
-      entry.bloomEnd = "Mai";
-      entry.sourceNote = "Hortblue Petite: kompaktere Sorte";
-    }
+  const n=(entry.variety||"").toLowerCase();
+  if(entry.category==="Blaubeere"){
+    if(n.includes("berrybux") || n.includes("angustifolium")){entry.height="30–60 cm";entry.spacing="60 cm";entry.harvestSeasonStart="Juli";entry.harvestSeasonEnd="August";entry.bloomStart="Mai";entry.bloomEnd="Mai";entry.sourceNote="BerryBux/Vaccinium angustifolium: kompakt, deutlich kleiner als Bluecrop";}
+    else if(n.includes("bluecorp") || n.includes("bluecrop")){entry.height="150–200 cm";entry.spacing="120–150 cm";entry.harvestSeasonStart="Juli";entry.harvestSeasonEnd="August";entry.bloomStart="April";entry.bloomEnd="Mai";entry.sourceNote="Bluecrop: hoher Kulturheidelbeer-Strauch";}
+    else if(n.includes("brigitta")){entry.height="120–180 cm";entry.spacing="100–150 cm";entry.harvestSeasonStart="August";entry.harvestSeasonEnd="September";entry.bloomStart="April";entry.bloomEnd="Mai";entry.sourceNote="Brigitta Blue: spätere, höhere Sorte";}
+    else if(n.includes("hortblue")){entry.height="80–130 cm";entry.spacing="60–100 cm";entry.harvestSeasonStart="Juli";entry.harvestSeasonEnd="September";entry.bloomStart="April";entry.bloomEnd="Mai";entry.sourceNote="Hortblue Petite: kompaktere Sorte";}
   }
-  if(n.includes("ananaskirsche gekauft")){
-    entry.isBought = true;
-    entry.purchaseSize = entry.purchaseSize || "ca. 15 cm beim Kauf";
-    entry.sourceNote = "Gekaufte Ananaskirsche ca. 15 cm";
-  }
+  if(n.includes("ananaskirsche gekauft")){entry.category="Ananaskirsche";entry.isBought=true;entry.purchaseSize=entry.purchaseSize||"ca. 15 cm beim Kauf";entry.sourceNote="Gekaufte Ananaskirsche ca. 15 cm";}
   return entry;
 }
 
@@ -258,6 +235,8 @@ function loadEntries(){
   const raw = localStorage.getItem(STORAGE_KEY);
   if(raw) return JSON.parse(raw);
 
+  const rawV13 = localStorage.getItem("gartentagebuch.v13");
+  if(rawV13) return JSON.parse(rawV13);
   const rawV12 = localStorage.getItem("gartentagebuch.v12");
   if(rawV12) return JSON.parse(rawV12);
   const rawV11 = localStorage.getItem("gartentagebuch.v11");
@@ -389,6 +368,57 @@ function timingDefaults(category, name){
 
 function categories(){ return [...new Set(entries.map(e=>e.category))].sort((a,b)=>a.localeCompare(b,"de")); }
 
+
+function forceV14DataFixes(){
+  // vorhandene lokale Daten korrigieren, nicht nur neue Startdaten
+  entries = entries.map(raw => {
+    let e = new GardenEntry(raw);
+    if((e.variety || "").toLowerCase().includes("erdbeer-himbeer") || (e.variety || "").toLowerCase().includes("rubus illecebrosus")){
+      e.category = "Erdbeer-Himbeer";
+    }
+    if((e.variety || "").toLowerCase().includes("knoblauch")){
+      e.category = "Knoblauch";
+    }
+    e = new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(e)));
+    return e;
+  });
+
+  if(!entries.some(e => (e.variety || "").toLowerCase().includes("ananaskirsche gekauft"))){
+    entries.push(new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry({
+      category:"Ananaskirsche",
+      variety:"Ananaskirsche gekauft",
+      locations:["Hochbeet","Topf"],
+      sownCount:1,
+      aliveCount:1,
+      isBought:true,
+      purchaseSize:"ca. 15 cm beim Kauf",
+      yieldMin:30,
+      yieldMed:80,
+      yieldMax:150,
+      harvests:[],
+      doneEvents:{}
+    }))));
+  }
+
+  if(!entries.some(e => e.category === "Knoblauch")){
+    entries.push(new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry({
+      category:"Knoblauch",
+      variety:"Knoblauch Herbstpflanzung",
+      locations:["Hochbeet","Boden"],
+      sownCount:12,
+      aliveCount:12,
+      sowingEstimated:true,
+      yieldMin:1,
+      yieldMed:1,
+      yieldMax:1,
+      harvests:[],
+      doneEvents:{}
+    }))));
+  }
+}
+forceV14DataFixes();
+localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+
 function filteredEntries(){
   const q = $("searchInput").value.trim().toLowerCase();
   const filter = $("categoryFilter").value;
@@ -423,7 +453,7 @@ function renderCalendar(){
   const doneFilter = $("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
   const events = buildCalendarEvents()
     .filter(e=>e.date>=today && e.date<=limit)
-    .filter(e=>!typeFilter || e.type.includes(typeFilter))
+    .filter(e=>!typeFilter || e.type.toLowerCase().includes(typeFilter.toLowerCase()))
     .filter(e=>!doneFilter || (doneFilter === "done" ? e.done : !e.done))
     .sort((a,b)=>a.date-b.date);
   $("calendarTimeline").innerHTML = events.length ? events.map(e=>`
@@ -454,7 +484,7 @@ function buildCalendarEvents(){
   const events=[];
   const plantingWindowSeen = new Set();
   for(const e of entries){
-    const baseDate = e.isBought ? parseLocalDate(e.purchaseDate || e.sowingDate) : parseLocalDate(e.sowingDate);
+    const baseDate = e.isBought ? (parseLocalDate(e.purchaseDate || e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime)) : (parseLocalDate(e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime));
     const plantUntilOnly = plantingEndDateFromText(e.plantingTime);
     if(plantUntilOnly && !e.doneEvents?.plantingWindow && !plantingWindowSeen.has(e.category)){
       plantingWindowSeen.add(e.category);
@@ -473,6 +503,16 @@ function buildCalendarEvents(){
     if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push(makeEvent(e, "harvestMax", addDays(baseDate,e.harvestMaxDays), "Ernte spätestens", `${e.variety}: Ernte spätestens`, `offen med: ${Math.round(e.openHarvest)}`));
   }
   return events;
+}
+
+function defaultDateFromPlantingTime(text){
+  if(!text) return null;
+  const monthMap={"januar":0,"februar":1,"märz":2,"maerz":2,"april":3,"mai":4,"juni":5,"juli":6,"august":7,"september":8,"oktober":9,"november":10,"dezember":11};
+  const lower=String(text).toLowerCase();
+  for(const [name, idx] of Object.entries(monthMap)){
+    if(lower.includes(name)) return new Date(new Date().getFullYear(), idx, 15);
+  }
+  return null;
 }
 
 function plantingEndDateFromText(text){
