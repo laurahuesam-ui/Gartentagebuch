@@ -18,7 +18,6 @@ function defaultMasterData(){
     "Wassermelone": {germinationMinDays:7,germinationMaxDays:14,plantingDepth:"1–2 cm",harvestMinDays:90,harvestMaxDays:120,plantingTime:"warm vorziehen, ab Mitte Mai raus",harvestSeasonStart:"August",harvestSeasonEnd:"September",bloomStart:"Juni",bloomEnd:"August",spacing:"80–120 cm",height:"rankend",sourceNote:"sehr wärmebedürftig"},
     "Chili": {germinationMinDays:10,germinationMaxDays:28,plantingDepth:"0,5–1 cm",harvestMinDays:140,harvestMaxDays:220,plantingTime:"Januar–März vorziehen, ab Mitte Mai raus",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Mai",bloomEnd:"September",spacing:"40–60 cm",height:"30–120 cm",sourceNote:"sortenabhängig"},
     "Paprika": {germinationMinDays:10,germinationMaxDays:28,plantingDepth:"0,5–1 cm",harvestMinDays:140,harvestMaxDays:220,plantingTime:"Februar/März vorziehen, ab Mitte Mai raus",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Mai",bloomEnd:"September",spacing:"40–60 cm",height:"40–100 cm",sourceNote:"wärmeliebend"},
-    "Knoblauch": {germinationMinDays:14,germinationMaxDays:28,plantingDepth:"3–5 cm",harvestMinDays:240,harvestMaxDays:300,plantingTime:"Oktober–November stecken, alternativ Februar/März",harvestSeasonStart:"Juni",harvestSeasonEnd:"Juli",bloomStart:"Mai",bloomEnd:"Juni",spacing:"10–15 cm, Reihen 20–30 cm",height:"40–80 cm",sourceNote:"Herbstpflanzung meist kräftiger; Ernte wenn Laub gelb wird"},
     "Zwiebel/Schlotten": {germinationMinDays:10,germinationMaxDays:21,plantingDepth:"1–2 cm",harvestMinDays:90,harvestMaxDays:150,plantingTime:"Frühjahr",harvestSeasonStart:"Juli",harvestSeasonEnd:"September",bloomStart:"2. Jahr",bloomEnd:"2. Jahr",spacing:"5–10 cm, Reihen 20–30 cm",height:"30–80 cm",sourceNote:"Steckzwiebeln schneller"},
     "Lauch": {germinationMinDays:10,germinationMaxDays:20,plantingDepth:"0,5–1 cm",harvestMinDays:120,harvestMaxDays:180,plantingTime:"Februar–April vorziehen",harvestSeasonStart:"August",harvestSeasonEnd:"März",bloomStart:"2. Jahr",bloomEnd:"2. Jahr",spacing:"10–15 cm, Reihen 30 cm",height:"40–80 cm",sourceNote:"Winterlauch möglich"},
     "Kürbis": {germinationMinDays:7,germinationMaxDays:14,plantingDepth:"2–3 cm",harvestMinDays:90,harvestMaxDays:130,plantingTime:"April vorziehen, ab Mitte Mai raus",harvestSeasonStart:"September",harvestSeasonEnd:"Oktober",bloomStart:"Juni",bloomEnd:"August",spacing:"100–150 cm",height:"rankend",sourceNote:"viel Platz"},
@@ -35,9 +34,10 @@ function defaultMasterData(){
     "Blaubeere": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, Ballen leicht erhöht",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Frühjahr oder Herbst, Topfware frostfrei",harvestSeasonStart:"Juli",harvestSeasonEnd:"September",bloomStart:"April",bloomEnd:"Mai",spacing:"80–150 cm",height:"100–200 cm",sourceNote:"Moorbeet/sauer"},
     "Himbeere": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, nicht Saat",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Herbst oder Frühjahr",harvestSeasonStart:"Juni",harvestSeasonEnd:"Oktober",bloomStart:"Mai",bloomEnd:"August",spacing:"40–80 cm",height:"120–200 cm",sourceNote:"Sommer-/Herbsthimbeere unterscheiden"},
     "Brombeere": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, nicht Saat",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Herbst oder Frühjahr",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Mai",bloomEnd:"August",spacing:"150–300 cm",height:"150–300 cm",sourceNote:"Rankhilfe sinnvoll"},
-    "Erdbeer-Himbeere": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, nicht Saat",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Frühjahr oder Herbst",harvestSeasonStart:"August",harvestSeasonEnd:"Oktober",bloomStart:"Juni",bloomEnd:"August",spacing:"60–100 cm",height:"30–60 cm",sourceNote:"Rubus illecebrosus, mehrjährig, zieht im Winter ein"},
     "Apfel": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Baum, Veredlungsstelle über Erde",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Herbst ideal, Topfware auch Frühjahr",harvestSeasonStart:"August",harvestSeasonEnd:"Oktober",bloomStart:"April",bloomEnd:"Mai",spacing:"300–800 cm",height:"200–600 cm",sourceNote:"je nach Unterlage"},
-    "Birne": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Baum, Veredlungsstelle über Erde",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Herbst ideal, Topfware auch Frühjahr",harvestSeasonStart:"August",harvestSeasonEnd:"Oktober",bloomStart:"April",bloomEnd:"Mai",spacing:"300–600 cm",height:"300–600 cm",sourceNote:"je nach Unterlage"}
+    "Birne": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Baum, Veredlungsstelle über Erde",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Herbst ideal, Topfware auch Frühjahr",harvestSeasonStart:"August",harvestSeasonEnd:"Oktober",bloomStart:"April",bloomEnd:"Mai",spacing:"300–600 cm",height:"300–600 cm",sourceNote:"je nach Unterlage"},
+    "Erdbeer-Himbeer": {germinationMinDays:0,germinationMaxDays:0,plantingDepth:"Pflanze, nicht Saat",harvestMinDays:0,harvestMaxDays:0,plantingTime:"Frühjahr oder Herbst",harvestSeasonStart:"Juli",harvestSeasonEnd:"September",bloomStart:"Juni",bloomEnd:"August",spacing:"50–80 cm",height:"30–60 cm",sourceNote:"Rubus illecebrosus, mehrjährig"},
+    "Knoblauch": {germinationMinDays:14,germinationMaxDays:35,plantingDepth:"5–7 cm",harvestMinDays:240,harvestMaxDays:300,plantingTime:"Herbstpflanzung September–November, alternativ Frühjahr",harvestSeasonStart:"Juni",harvestSeasonEnd:"Juli",bloomStart:"Mai",bloomEnd:"Juni",spacing:"10–15 cm, Reihen 20–30 cm",height:"40–90 cm",sourceNote:"Zehen im Herbst stecken, Ernte wenn Laub gelb wird"}
   };
 }
 
@@ -149,10 +149,31 @@ class GardenEntry {
   get percentReached(){ return this.expectedMed ? Math.round((this.actualHarvestTotal / this.expectedMed) * 100) : 0; }
 }
 
-let entries = loadEntries().map(e => {
-  if((e.variety || e.name || "").toLowerCase().includes("erdbeer-himbeer") || (e.variety || e.name || "").toLowerCase().includes("illecebrosus")) e.category = "Erdbeer-Himbeere";
-  return new GardenEntry(applyMasterToEntry(e));
-});
+let entries = loadEntries().map(e => new GardenEntry(applyMasterToEntry(normalizeEntryCategory(e))));
+ensureDefaultGarlicEntry();
+
+function normalizeEntryCategory(e){
+  const guessed = guessCategory(e.variety || e.name || e.category || "");
+  if(guessed === "Erdbeer-Himbeer" || guessed === "Knoblauch") e.category = guessed;
+  return e;
+}
+
+function ensureDefaultGarlicEntry(){
+  if(entries.some(e => e.category === "Knoblauch")) return;
+  entries.push(new GardenEntry(applyMasterToEntry({
+    category:"Knoblauch",
+    variety:"Knoblauch Herbstpflanzung",
+    locations:["Hochbeet","Boden"],
+    sownCount:12,
+    aliveCount:12,
+    sowingEstimated:true,
+    yieldMin:1,
+    yieldMed:1,
+    yieldMax:1,
+    harvests:[],
+    doneEvents:{}
+  })));
+}
 let selectedCategory = "";
 let selectedEntryId = "";
 
@@ -219,7 +240,7 @@ function parseSeedCsv(){
       literNow: literNow || "",
       literLater: literLater || "",
       harvests,
-      isBought: /gekauft|baum|blaubeere|himbeere|brombeere|erdbeer-himbeer|illecebrosus/i.test(name),
+      isBought: /gekauft|baum|blaubeere|himbeere|brombeere|erdbeer-himbeer/i.test(name),
       ...defaults
     });
   });
@@ -232,6 +253,8 @@ function cleanNumber(v){
 
 function guessCategory(name){
   const n = name.toLowerCase();
+  if(n.includes("erdbeer-himbeer") || n.includes("rubus illecebrosus")) return "Erdbeer-Himbeer";
+  if(n.includes("knoblauch")) return "Knoblauch";
   if(n.includes("tomate") || n.includes("tomaten")) return "Tomate";
   if(n.includes("kohlrabi")) return "Kohlrabi";
   if(n.includes("salatgurke") || n.includes("snackgurke") || n.includes("brotzeitgurke") || n === "gurke gekauft" || n.includes("gurke direkt")) return "Gurke";
@@ -245,7 +268,6 @@ function guessCategory(name){
   if(n.includes("wassermelone")) return "Wassermelone";
   if(n.includes("chili")) return "Chili";
   if(n.includes("paprika")) return "Paprika";
-  if(n.includes("knoblauch")) return "Knoblauch";
   if(n.includes("zwiebel") || n.includes("schlotten")) return "Zwiebel/Schlotten";
   if(n.includes("lauch")) return "Lauch";
   if(n.includes("kürbis") || n.includes("hokkaido") || n.includes("butternut")) return "Kürbis";
@@ -260,7 +282,6 @@ function guessCategory(name){
   if(n.includes("kartoffel")) return "Kartoffel";
   if(n.includes("erdbeere") || n.includes("walderdbeere")) return "Erdbeere";
   if(n.includes("blaubeere")) return "Blaubeere";
-  if(n.includes("erdbeer-himbeer") || n.includes("illecebrosus")) return "Erdbeer-Himbeere";
   if(n.includes("himbeere")) return "Himbeere";
   if(n.includes("brombeere")) return "Brombeere";
   if(n.includes("apfel")) return "Apfel";
@@ -409,39 +430,6 @@ function renderHome(){
   document.querySelectorAll("[data-category]").forEach(card=>card.onclick=()=>{selectedCategory=card.dataset.category; selectedEntryId=""; renderCategoryDetail(selectedCategory);});
 }
 
-
-function runSearch(){
-  selectedEntryId = "";
-  const q = $("searchInput").value.trim();
-  const filter = $("categoryFilter").value;
-  if(q && !filter){
-    selectedCategory = "";
-    renderSearchResults();
-  } else if(selectedCategory || filter){
-    selectedCategory = filter || selectedCategory;
-    renderCategoryDetail(selectedCategory);
-  } else {
-    renderHome();
-  }
-}
-
-function renderSearchResults(){
-  $("homeView").classList.add("hidden");
-  $("detailView").classList.remove("hidden");
-  const list = filteredEntries();
-  $("detailContent").innerHTML = `
-    <h2>Suchergebnisse</h2>
-    <p class="meta">${list.length} Treffer</p>
-    <div class="grid">${list.map(entryCard).join("")}</div>
-  `;
-  document.querySelectorAll("[data-entry-id]").forEach(card=>{
-    card.onclick=()=>{
-      selectedEntryId=card.dataset.entryId;
-      renderDetail(selectedEntryId);
-    };
-  });
-}
-
 function renderCategoryDetail(category){
   $("homeView").classList.add("hidden"); $("detailView").classList.remove("hidden");
   const list = filteredEntries().filter(e=>e.category===category);
@@ -493,7 +481,7 @@ function renderDetail(id){
     </div>
     <div class="actions"><button id="addHarvestBtn" type="button">+ Ernte eintragen</button><button id="editPlantBtn" class="secondary" type="button">Bearbeiten</button><button id="duplicatePlantBtn" class="secondary" type="button">Neu säen / duplizieren</button><button id="deletePlantBtn" class="danger" type="button">Löschen</button></div>
   </article>
-  <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th><th>Aktionen</th></tr></thead><tbody>${e.harvests.length ? sortedHarvests(e).map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td><td><div class="small-actions"><button type="button" class="secondary" data-edit-harvest="${h.id}">✏️</button><button type="button" class="secondary" data-copy-harvest="${h.id}">⧉</button><button type="button" class="danger" data-delete-harvest="${h.id}">🗑️</button></div></td></tr>`).join("") : `<tr><td colspan="6">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
+  <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th><th>Aktionen</th></tr></thead><tbody>${e.harvests.length ? e.harvests.slice().sort((a,b)=>harvestSortDate(b)-harvestSortDate(a)).map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td><td><div class="small-actions"><button type="button" class="secondary" data-edit-harvest="${h.id}">✏️</button><button type="button" class="secondary" data-copy-harvest="${h.id}">⧉</button><button type="button" class="danger" data-delete-harvest="${h.id}">🗑️</button></div></td></tr>`).join("") : `<tr><td colspan="6">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
   $("plusOneGerminatedBtn").onclick=()=>{ e.aliveCount += 1; saveEntries(); };
   $("setGerminatedCountBtn").onclick=()=>{ const val = Number($("setGerminatedCountInput").value); if(!Number.isNaN(val)) { e.aliveCount = val; saveEntries(); } };
   $("addHarvestBtn").onclick=()=>openHarvestDialog(e.id);
@@ -780,13 +768,9 @@ function importBackupFile(file){
   reader.readAsText(file);
 }
 
-
-function sortedHarvests(entry){
-  return [...(entry.harvests || [])].sort((a,b)=>{
-    const da = parseLocalDate(a.toDate || a.date || a.fromDate) || new Date(0);
-    const db = parseLocalDate(b.toDate || b.date || b.fromDate) || new Date(0);
-    return db - da;
-  });
+function harvestSortDate(h){
+  const d = parseLocalDate(h.toDate || h.date || h.fromDate);
+  return d ? d.getTime() : 0;
 }
 
 function monthlyHarvests(e){
@@ -835,9 +819,14 @@ $("resetBtn").onclick=()=>{if(confirm("Startdaten neu laden? Deine lokalen Ände
 $("calendarRange").onchange=renderCalendar;
 $("calendarTypeFilter").onchange=renderCalendar;
 $("calendarDoneFilter").onchange=renderCalendar;
-$("searchInput").oninput=()=>{ if(!$("searchInput").value.trim()) { selectedEntryId=""; selectedCategory=$("categoryFilter").value; selectedCategory?renderCategoryDetail(selectedCategory):renderHome(); } };
-$("searchInput").onkeydown=(ev)=>{ if(ev.key === "Enter") { ev.preventDefault(); runSearch(); } };
-$("searchInput").addEventListener("search", runSearch);
+$("searchInput").oninput=()=>{if(selectedCategory) renderCategoryDetail(selectedCategory); else renderHome();};
+$("searchInput").onkeydown=(ev)=>{
+  if(ev.key === "Enter"){
+    ev.preventDefault();
+    if(selectedCategory) renderCategoryDetail(selectedCategory); else renderHome();
+    $("searchInput").blur();
+  }
+};
 $("categoryFilter").onchange=()=>{selectedCategory=$("categoryFilter").value; selectedEntryId=""; selectedCategory?renderCategoryDetail(selectedCategory):renderHome();};
 $("backBtn").onclick=()=>{if(selectedEntryId){selectedEntryId=""; renderCategoryDetail(selectedCategory);} else {selectedCategory=""; $("categoryFilter").value=""; renderHome();}};
 

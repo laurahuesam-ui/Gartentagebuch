@@ -1,11 +1,9 @@
 # Gartentagebuch PWA v12
 
 Neu:
-- Erdbeer-Himbeere Rubus illecebrosus ist eigene Pflanzenart.
-- Ernteverlauf zeigt neueste Ernte zuerst.
-- Suche kann mit Enter ausgeführt werden und zeigt Suchergebnisse.
-- Knoblauch als Pflanzenart + Starteintrag hinzugefügt.
-- Knoblauch-Stammdaten: Herbstpflanzung, Pflanztiefe, Abstand, Wuchshöhe, Erntezeit.
+- Erdbeer-Himbeer / Rubus illecebrosus ist eine eigene Pflanzenart.
+- Ernteverlauf zeigt neueste Einträge zuerst.
+- Suche reagiert auch auf Enter.
+- Knoblauch wurde mit Herbst-Standarddaten ergänzt.
 
-Update:
-Alle Dateien in GitHub ersetzen und committen.
+Update: Dateien in GitHub ersetzen und committen.
