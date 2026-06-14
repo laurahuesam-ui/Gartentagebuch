@@ -57,5 +57,3 @@ font-size:.9rem;
 }
 
 .menu-label{font-weight:700;color:var(--text)}.menu-label select{margin-top:.25rem}
-
-.calendar-shown-info{margin:.25rem 0 .8rem;font-weight:700;color:var(--muted)}

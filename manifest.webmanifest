@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v22: Kalender zeigt standardmäßig 10, optional 30 oder alle Einträge.",
+  "description": "Gartentagebuch v21: Kaufdatum kann leer bleiben.",
   "icons": [
     {
       "src": "icon.svg",

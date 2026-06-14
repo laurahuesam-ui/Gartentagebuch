@@ -12,7 +12,7 @@
 <header class="app-header">
   <div>
     <p class="eyebrow">Private PWA · lokale Datenbank</p>
-    <h1>Gartentagebuch <small class="version-tag">v22</small></h1>
+    <h1>Gartentagebuch <small class="version-tag">v21</small></h1>
   </div>
   <div class="header-actions menu-wrap">
     <button id="menuBtn" class="secondary" type="button">☰ Menü</button>
@@ -43,7 +43,7 @@
   <section class="calendar-card">
     <div class="calendar-head">
       <div>
-        <h2>Garten-Kalender <small id="calendarCount" class="version-tag"></small></h2>
+        <h2>Garten-Kalender</h2>
         <p class="meta">Zeigt Aussaat, früheste/späteste Keimung und früheste/späteste Ernte, sobald ein Aussaatdatum eingetragen ist.</p>
       </div>
       <div class="calendar-controls">
@@ -65,14 +65,8 @@
           <option value="open" selected>Nur offen</option>
           <option value="done">Nur erledigt</option>
         </select>
-        <select id="calendarDisplayLimit" title="Anzahl angezeigter Einträge">
-          <option value="10" selected>10 Einträge</option>
-          <option value="30">30 Einträge</option>
-          <option value="all">Alle Einträge</option>
-        </select>
       </div>
     </div>
-    <p id="calendarShownInfo" class="meta calendar-shown-info"></p>
     <div id="calendarTimeline" class="timeline"></div>
   </section>
 
