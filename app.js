@@ -20,6 +20,14 @@ const $ = id => document.getElementById(id);
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
 
+const CALENDAR_LIMIT_KEY = "gartentagebuch.calendarDisplayLimit";
+function getCalendarDisplayLimit(){
+  return localStorage.getItem(CALENDAR_LIMIT_KEY) || "10";
+}
+function setCalendarDisplayLimit(value){
+  localStorage.setItem(CALENDAR_LIMIT_KEY, value || "10");
+}
+
 function defaultMasterData(){
   return {
     "Tomate": {germinationMinDays:3,germinationMaxDays:15,plantingDepth:"0,5–1 cm",harvestMinDays:120,harvestMaxDays:190,plantingTime:"Mitte März–Anfang April vorziehen, ab Mitte Mai raus",harvestSeasonStart:"Juli",harvestSeasonEnd:"Oktober",bloomStart:"Mai",bloomEnd:"Juli",spacing:"50–80 cm",height:"60–250 cm",sourceNote:"stark sortenabhängig"},
@@ -508,12 +516,22 @@ function renderCalendar(){
   const limit = addDays(today, rangeDays);
   const typeFilter = $("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
   const doneFilter = $("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
-  const events = buildCalendarEvents()
+  const displayLimit = $("calendarDisplayLimit") ? $("calendarDisplayLimit").value : getCalendarDisplayLimit();
+
+  const allEvents = buildCalendarEvents()
     .filter(e=>e.date>=today && e.date<=limit)
     .filter(e=>!typeFilter || e.type.toLowerCase().includes(typeFilter.toLowerCase()))
     .filter(e=>!doneFilter || (doneFilter === "done" ? e.done : !e.done))
     .sort((a,b)=>a.date-b.date);
-  $("calendarTimeline").innerHTML = events.length ? events.map(e=>`
+
+  const totalCount = allEvents.length;
+  const shownEvents = displayLimit === "all" ? allEvents : allEvents.slice(0, Number(displayLimit || 10));
+  const shownCount = shownEvents.length;
+
+  if($("calendarCount")) $("calendarCount").textContent = `(${totalCount} ${totalCount === 1 ? "Eintrag" : "Einträge"})`;
+  if($("calendarShownInfo")) $("calendarShownInfo").textContent = totalCount ? `${shownCount} von ${totalCount} ${totalCount === 1 ? "Eintrag" : "Einträgen"} angezeigt` : "0 Einträge angezeigt";
+
+  $("calendarTimeline").innerHTML = shownEvents.length ? shownEvents.map(e=>`
     <div class="timeline-item ${e.done ? "done-event" : ""}">
       <div class="timeline-date">${formatDate(e.date)}</div>
       <div>
@@ -1154,6 +1172,10 @@ $("resetBtn").onclick=()=>{if(confirm("Startdaten neu laden? Deine lokalen Ände
 $("calendarRange").onchange=renderCalendar;
 $("calendarTypeFilter").onchange=renderCalendar;
 $("calendarDoneFilter").onchange=renderCalendar;
+if($("calendarDisplayLimit")){
+  $("calendarDisplayLimit").value = getCalendarDisplayLimit();
+  $("calendarDisplayLimit").onchange = ()=>{ setCalendarDisplayLimit($("calendarDisplayLimit").value); renderCalendar(); };
+}
 $("searchInput").oninput=()=>{if(selectedCategory) renderCategoryDetail(selectedCategory); else renderHome();};
 $("searchInput").onkeydown=(ev)=>{
   if(ev.key === "Enter"){
