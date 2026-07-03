@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v21: Kaufdatum kann leer bleiben.",
+  "description": "Gartentagebuch v22 mit Saison-fertig Status und Ertragsvorschlägen.",
   "icons": [
     {
       "src": "icon.svg",

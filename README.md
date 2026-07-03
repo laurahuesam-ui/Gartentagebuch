@@ -1,9 +1,8 @@
-# Gartentagebuch PWA v21
+# Gartentagebuch PWA v22
 
-Fix:
-- Kaufdatum kann jetzt gelöscht werden und bleibt leer.
-- Die App setzt bei gekauften Jungpflanzen nicht automatisch wieder das heutige Datum ein.
-- Größe/Entwicklungsstand für gekaufte Pflanzen bleibt weiterhin erhalten.
-
-Update:
-Alle Dateien in GitHub ersetzen und committen.
+Neu:
+- Button „Saison fertig“ pro Pflanze.
+- Saison fertig entfernt weitere erwartete Ernte aus Statistik/Kalender.
+- Tatsächliche Ernte bleibt gespeichert.
+- Detailansicht zeigt letzte Ernte und Erntezeitraum.
+- Button „Ertrag anpassen?“ schlägt neue min/med/max aus tatsächlicher Ernte vor und übernimmt erst nach Bestätigung.

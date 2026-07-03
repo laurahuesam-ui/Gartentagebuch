@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v21";
-const YEAR_LIST_KEY = "gartentagebuch.years.v21";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v21";
+const STORAGE_KEY = "gartentagebuch.v22";
+const YEAR_LIST_KEY = "gartentagebuch.years.v22";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v22";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -190,6 +190,9 @@ class GardenEntry {
     this.literNow = data.literNow === "" || data.literNow == null ? "" : Number(data.literNow);
     this.literLater = data.literLater === "" || data.literLater == null ? "" : Number(data.literLater);
     this.notes = data.notes || "";
+    this.seasonDone = Boolean(data.seasonDone);
+    this.seasonDoneDate = data.seasonDoneDate || "";
+    this.seasonDoneReason = data.seasonDoneReason || "";
     this.harvests = data.harvests || [];
   }
   get survivalRate(){ return this.sownCount ? Math.round(this.aliveCount/this.sownCount*100) : null; }
@@ -197,8 +200,21 @@ class GardenEntry {
   get expectedMed(){ return this.aliveCount*this.yieldMed; }
   get expectedMax(){ return this.aliveCount*this.yieldMax; }
   get actualHarvestTotal(){ return this.harvests.reduce((s,h)=>s+Number(h.amount||0),0); }
-  get openHarvest(){ return Math.max(0, this.expectedMed-this.actualHarvestTotal); }
+  get activeExpectedMed(){ return this.seasonDone ? 0 : this.expectedMed; }
+  get activeOpenHarvest(){ return this.seasonDone ? 0 : Math.max(0, this.expectedMed-this.actualHarvestTotal); }
+  get openHarvest(){ return this.activeOpenHarvest; }
   get percentReached(){ return this.expectedMed ? Math.round((this.actualHarvestTotal / this.expectedMed) * 100) : 0; }
+  get lastHarvest(){
+    if(!this.harvests.length) return null;
+    return this.harvests.slice().sort((a,b)=>harvestSortDate(b)-harvestSortDate(a))[0];
+  }
+  get harvestPeriod(){
+    if(!this.harvests.length) return "";
+    const starts=this.harvests.map(h=>parseLocalDate(h.fromDate||h.date||h.toDate)).filter(Boolean).sort((a,b)=>a-b);
+    const ends=this.harvests.map(h=>parseLocalDate(h.toDate||h.date||h.fromDate)).filter(Boolean).sort((a,b)=>a-b);
+    if(!starts.length||!ends.length) return "";
+    return `${formatDate(starts[0])} – ${formatDate(ends[ends.length-1])}`;
+  }
 }
 
 let entries = loadEntries().map(e => new GardenEntry(applyVarietySpecificMaster(applyMasterToEntry(normalizeEntryCategory(e)))));
@@ -254,10 +270,12 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v21.2026") ||
       localStorage.getItem("gartentagebuch.v20.2026") ||
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v21") ||
       localStorage.getItem("gartentagebuch.v20") ||
       localStorage.getItem("gartentagebuch.v19") ||
       localStorage.getItem("gartentagebuch.v18") ||
@@ -496,9 +514,9 @@ function renderStats(){
   if($("statPlants")) $("statPlants").textContent = entries.length;
   $("statAlive").textContent = entries.reduce((s,e)=>s+e.aliveCount,0);
   const totalHarvest = entries.reduce((s,e)=>s+e.actualHarvestTotal,0);
-  const totalExpected = entries.reduce((s,e)=>s+e.expectedMed,0);
+  const totalExpected = entries.reduce((s,e)=>s+(e.seasonDone ? 0 : e.expectedMed),0);
   $("statHarvest").textContent = Math.round(totalHarvest);
-  $("statOpen").textContent = Math.round(entries.reduce((s,e)=>s+e.openHarvest,0));
+  $("statOpen").textContent = Math.round(entries.reduce((s,e)=>s+e.activeOpenHarvest,0));
   $("statPercent").textContent = totalExpected ? `${Math.round(totalHarvest / totalExpected * 100)}%` : "0%";
 }
 
@@ -549,7 +567,7 @@ function buildCalendarEvents(){
     }
     const alive = Number(e.aliveCount || 0);
 
-    if(alive <= 0){
+    if(alive <= 0 || e.seasonDone){
       continue;
     }
 
@@ -563,7 +581,7 @@ function buildCalendarEvents(){
     if(!e.isBought && e.germinationMinDays) events.push(makeEvent(e, "germMin", addDays(baseDate,e.germinationMinDays), "Keimung frühestens", `${e.variety}: Keimlinge frühestens`, `nach ${e.germinationMinDays} Tagen`));
     if(!e.isBought && e.germinationMaxDays && e.germinationMaxDays!==e.germinationMinDays) events.push(makeEvent(e, "germMax", addDays(baseDate,e.germinationMaxDays), "Keimung spätestens", `${e.variety}: Keimlinge spätestens`, `nach ${e.germinationMaxDays} Tagen`));
     if(e.harvestMinDays) events.push(makeEvent(e, "harvestMin", addDays(baseDate,e.harvestMinDays), "Ernte frühestens", `${e.variety}: Ernte frühestens`, `med erwartet: ${Math.round(e.expectedMed)}`));
-    if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push(makeEvent(e, "harvestMax", addDays(baseDate,e.harvestMaxDays), "Ernte spätestens", `${e.variety}: Ernte spätestens`, `offen med: ${Math.round(e.openHarvest)}`));
+    if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push(makeEvent(e, "harvestMax", addDays(baseDate,e.harvestMaxDays), "Ernte spätestens", `${e.variety}: Ernte spätestens`, `offen med: ${Math.round(e.activeOpenHarvest)}`));
   }
   return events;
 }
@@ -641,7 +659,7 @@ function renderCategoryDetail(category){
 }
 
 function entryCard(e){
-  return `<article class="card" data-entry-id="${e.id}"><h3>${escapeHtml(e.variety)}</h3><p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p><div class="badges"><span class="badge">gesät: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span></div><p class="meta">med: ${Math.round(e.expectedMed)} · geerntet: ${Math.round(e.actualHarvestTotal)} · offen: ${Math.round(e.openHarvest)} · ${e.percentReached}% erreicht</p></article>`;
+  return `<article class="card" data-entry-id="${e.id}"><h3>${escapeHtml(e.variety)}</h3><p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p><div class="badges"><span class="badge">gesät: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span></div><p class="meta">med: ${Math.round(e.expectedMed)} · geerntet: ${Math.round(e.actualHarvestTotal)} · offen: ${Math.round(e.activeOpenHarvest)} · ${e.percentReached}% erreicht${e.seasonDone ? " · Saison fertig" : ""}</p></article>`;
 }
 
 function renderDetail(id){
@@ -656,7 +674,7 @@ function renderDetail(id){
   <article class="card">
     <h2>${escapeHtml(e.category)} – ${escapeHtml(e.variety)}</h2>
     <p class="meta">${escapeHtml(e.locations.join(", ") || "kein Standort")}</p>
-    <div class="badges"><span class="badge">gesät/gepflanzt: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span><span class="badge">offen med: ${Math.round(e.openHarvest)}</span><span class="badge">${e.percentReached}% erreicht</span></div>
+    <div class="badges"><span class="badge">gesät/gepflanzt: ${e.sownCount}</span><span class="badge">lebend: ${e.aliveCount}</span><span class="badge">Quote: ${e.survivalRate ?? "–"}%</span><span class="badge">offen med: ${Math.round(e.activeOpenHarvest)}</span><span class="badge">${e.percentReached}% erreicht</span></div>
     <div class="progressbar"><span style="width:${Math.min(e.percentReached,100)}%"></span></div>
     <p class="meta">Ertragsfortschritt bezogen auf den mittleren erwarteten Ertrag.</p>
     <div class="tablewrap"><table><tbody>
@@ -675,6 +693,9 @@ function renderDetail(id){
       <tr><th>Ernte früh/spät</th><td>${e.harvestMinDays || "–"} / ${e.harvestMaxDays || "–"} Tage → ${harvestMin} / ${harvestMax}</td></tr>
       <tr><th>Ertrag min/med/max gesamt</th><td>${Math.round(e.expectedMin)} / ${Math.round(e.expectedMed)} / ${Math.round(e.expectedMax)}</td></tr>
       <tr><th>Liter jetzt/später</th><td>${e.literNow === "" ? "–" : e.literNow} / ${e.literLater === "" ? "–" : e.literLater}</td></tr>
+      <tr><th>Saisonstatus</th><td>${e.seasonDone ? `fertig seit ${escapeHtml(e.seasonDoneDate || "–")} · ${escapeHtml(e.seasonDoneReason || "")}` : "aktiv"}</td></tr>
+      <tr><th>Letzte Ernte</th><td>${e.lastHarvest ? `${escapeHtml(new HarvestEntry(e.lastHarvest).displayDate)} · ${e.lastHarvest.amount} ${escapeHtml(e.lastHarvest.unit)}` : "–"}</td></tr>
+      <tr><th>Erntezeitraum bisher</th><td>${escapeHtml(e.harvestPeriod || "–")}</td></tr>
       <tr><th>Notizen</th><td>${escapeHtml(e.notes || "–")}</td></tr>
     </tbody></table></div>
     <div class="quick-germination">
@@ -682,12 +703,14 @@ function renderDetail(id){
       <input id="setGerminatedCountInput" type="number" min="0" placeholder="Anzahl lebend" />
       <button id="setGerminatedCountBtn" class="secondary" type="button">Anzahl eintragen</button>
     </div>
-    <div class="actions"><button id="addHarvestBtn" type="button">+ Ernte eintragen</button><button id="editPlantBtn" class="secondary" type="button">Bearbeiten</button><button id="duplicatePlantBtn" class="secondary" type="button">Neu säen / duplizieren</button><button id="deletePlantBtn" class="danger" type="button">Löschen</button></div>
+    <div class="actions"><button id="addHarvestBtn" type="button">+ Ernte eintragen</button><button id="seasonDoneBtn" class="secondary" type="button">${e.seasonDone ? "Saison reaktivieren" : "Saison fertig"}</button><button id="suggestYieldBtn" class="secondary" type="button">Ertrag anpassen?</button><button id="editPlantBtn" class="secondary" type="button">Bearbeiten</button><button id="duplicatePlantBtn" class="secondary" type="button">Neu säen / duplizieren</button><button id="deletePlantBtn" class="danger" type="button">Löschen</button></div>
   </article>
   <h3>Ernteverlauf</h3><div class="tablewrap"><table><thead><tr><th>Datum/Zeitraum</th><th>Menge</th><th>Einheit</th><th>geschätzt</th><th>Notiz</th><th>Aktionen</th></tr></thead><tbody>${e.harvests.length ? e.harvests.slice().sort((a,b)=>harvestSortDate(b)-harvestSortDate(a)).map(h=>`<tr><td>${escapeHtml(new HarvestEntry(h).displayDate)}</td><td>${h.amount}</td><td>${escapeHtml(h.unit)}</td><td>${h.estimated ? "ja" : ""}</td><td>${escapeHtml(h.note||"")}</td><td><div class="small-actions"><button type="button" class="secondary" data-edit-harvest="${h.id}">✏️</button><button type="button" class="secondary" data-copy-harvest="${h.id}">⧉</button><button type="button" class="danger" data-delete-harvest="${h.id}">🗑️</button></div></td></tr>`).join("") : `<tr><td colspan="6">Noch keine Ernte eingetragen.</td></tr>`}</tbody></table></div>`;
   $("plusOneGerminatedBtn").onclick=()=>{ e.aliveCount += 1; saveEntries(); };
   $("setGerminatedCountBtn").onclick=()=>{ const val = Number($("setGerminatedCountInput").value); if(!Number.isNaN(val)) { e.aliveCount = val; saveEntries(); } };
   $("addHarvestBtn").onclick=()=>openHarvestDialog(e.id);
+  $("seasonDoneBtn").onclick=()=>toggleSeasonDone(e.id);
+  $("suggestYieldBtn").onclick=()=>suggestYieldAdjustment(e.id);
   $("editPlantBtn").onclick=()=>openPlantDialog(e);
   $("duplicatePlantBtn").onclick=()=>{
     const today = new Date().toISOString().slice(0,10);
@@ -731,7 +754,7 @@ function savePlantFromForm(ev){
   ev.preventDefault();
   const id=$("plantId").value; const old=entries.find(e=>e.id===id);
   const locations=[]; if($("locHochbeet").checked) locations.push("Hochbeet"); if($("locBoden").checked) locations.push("Boden"); if($("locTopf").checked) locations.push("Topf");
-  let entry=new GardenEntry({id:id||undefined,category:$("category").value,variety:$("variety").value,locations,sownCount:$("sownCount").value,aliveCount:$("aliveCount").value,sowingDate:$("sowingDate").value,sowingEstimated:$("sowingEstimated").checked,isBought:$("isBought").checked,purchaseDate:$("purchaseDate").value,purchaseSize:$("purchaseSize").value,bloomStart:$("bloomStart").value,bloomEnd:$("bloomEnd").value,doneEvents:old?.doneEvents||{},plantingTime:$("plantingTime").value,germinationMinDays:$("germinationMinDays").value,germinationMaxDays:$("germinationMaxDays").value,plantingDepth:$("plantingDepth").value,harvestMinDays:$("harvestMinDays").value,harvestMaxDays:$("harvestMaxDays").value,yieldMin:$("yieldMin").value,yieldMed:$("yieldMed").value,yieldMax:$("yieldMax").value,literNow:$("literNow").value,literLater:$("literLater").value,notes:$("notes").value,harvests:old?.harvests||[]});
+  let entry=new GardenEntry({id:id||undefined,category:$("category").value,variety:$("variety").value,locations,sownCount:$("sownCount").value,aliveCount:$("aliveCount").value,sowingDate:$("sowingDate").value,sowingEstimated:$("sowingEstimated").checked,isBought:$("isBought").checked,purchaseDate:$("purchaseDate").value,purchaseSize:$("purchaseSize").value,bloomStart:$("bloomStart").value,bloomEnd:$("bloomEnd").value,doneEvents:old?.doneEvents||{},seasonDone:old?.seasonDone||false,seasonDoneDate:old?.seasonDoneDate||"",seasonDoneReason:old?.seasonDoneReason||"",plantingTime:$("plantingTime").value,germinationMinDays:$("germinationMinDays").value,germinationMaxDays:$("germinationMaxDays").value,plantingDepth:$("plantingDepth").value,harvestMinDays:$("harvestMinDays").value,harvestMaxDays:$("harvestMaxDays").value,yieldMin:$("yieldMin").value,yieldMed:$("yieldMed").value,yieldMax:$("yieldMax").value,literNow:$("literNow").value,literLater:$("literLater").value,notes:$("notes").value,harvests:old?.harvests||[]});
   entry = new GardenEntry(boughtPlantDefaults(applyVarietySpecificMaster(applyMasterToEntry(entry))));
   if(old) entries=entries.map(e=>e.id===id?entry:e); else entries.push(entry);
   selectedCategory=entry.category; selectedEntryId=entry.id; $("plantDialog").close(); saveEntries();
@@ -920,6 +943,38 @@ function completeGerminationEvent(updateCount){
   saveEntries();
 }
 
+
+function toggleSeasonDone(entryId){
+  const e=entries.find(x=>x.id===entryId);
+  if(!e) return;
+  if(e.seasonDone){
+    e.seasonDone=false; e.seasonDoneDate=""; e.seasonDoneReason=""; saveEntries(); return;
+  }
+  const reason=prompt("Warum ist die Saison fertig? z. B. abgestorben, keine Früchte mehr, entfernt", "keine Früchte mehr");
+  if(reason===null) return;
+  e.seasonDone=true;
+  e.seasonDoneDate=new Date().toISOString().slice(0,10);
+  e.seasonDoneReason=reason;
+  saveEntries();
+}
+
+function suggestYieldAdjustment(entryId){
+  const e=entries.find(x=>x.id===entryId);
+  if(!e) return;
+  if(!e.actualHarvestTotal || !e.aliveCount){
+    alert("Für einen Vorschlag brauche ich tatsächliche Ernte und lebende Pflanzen.");
+    return;
+  }
+  const actualPerPlant=e.actualHarvestTotal/e.aliveCount;
+  const suggestedMin=Math.max(0,Math.round(actualPerPlant*0.7*10)/10);
+  const suggestedMed=Math.max(0,Math.round(actualPerPlant*10)/10);
+  const suggestedMax=Math.max(0,Math.round(actualPerPlant*1.3*10)/10);
+  const msg=`Bisher geerntet: ${Math.round(e.actualHarvestTotal)}\\nZeitraum: ${e.harvestPeriod || "unbekannt"}\\nLebend: ${e.aliveCount}\\n\\nAktuell min/med/max je Pflanze: ${e.yieldMin}/${e.yieldMed}/${e.yieldMax}\\nVorschlag: ${suggestedMin}/${suggestedMed}/${suggestedMax}\\n\\nÜbernehmen?`;
+  if(confirm(msg)){
+    e.yieldMin=suggestedMin; e.yieldMed=suggestedMed; e.yieldMax=suggestedMax; saveEntries();
+  }
+}
+
 function exportBackup(){
   const backup = {
     app: "gartentagebuch-pwa",
@@ -1036,7 +1091,7 @@ function createNewYearFromValue(yearValue){
       ...e,
       id: crypto.randomUUID(),
       harvests: [],
-      doneEvents: {},
+      doneEvents: {}, seasonDone:false, seasonDoneDate:"", seasonDoneReason:"",
       sownCount: 0,
       aliveCount: 0,
       sowingDate: "",
