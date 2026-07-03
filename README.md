@@ -1,8 +1,12 @@
-# Gartentagebuch PWA v22
+# Gartentagebuch PWA v23
 
-Neu:
-- Button „Saison fertig“ pro Pflanze.
-- Saison fertig entfernt weitere erwartete Ernte aus Statistik/Kalender.
+Neu/Fix:
+- Saison fertig pro Pflanze.
+- Fertige Saison: keine weitere erwartete Ernte in Statistik/Kalender.
 - Tatsächliche Ernte bleibt gespeichert.
-- Detailansicht zeigt letzte Ernte und Erntezeitraum.
-- Button „Ertrag anpassen?“ schlägt neue min/med/max aus tatsächlicher Ernte vor und übernimmt erst nach Bestätigung.
+- Letzte Ernte und Erntezeitraum in Detailansicht.
+- Ertrag anpassen? schlägt min/med/max vor und übernimmt erst nach Bestätigung.
+- Kalender default: nächste 30 Tage.
+- Kalender zeigt default nur 5 Einträge.
+- Button zeigt alle Termine bzw. klappt wieder auf 5 zurück.
+- JavaScript wurde mit node --check geprüft.

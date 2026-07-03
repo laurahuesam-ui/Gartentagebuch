@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v22";
-const YEAR_LIST_KEY = "gartentagebuch.years.v22";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v22";
+const STORAGE_KEY = "gartentagebuch.v23";
+const YEAR_LIST_KEY = "gartentagebuch.years.v23";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v23";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -212,7 +212,7 @@ class GardenEntry {
     if(!this.harvests.length) return "";
     const starts=this.harvests.map(h=>parseLocalDate(h.fromDate||h.date||h.toDate)).filter(Boolean).sort((a,b)=>a-b);
     const ends=this.harvests.map(h=>parseLocalDate(h.toDate||h.date||h.fromDate)).filter(Boolean).sort((a,b)=>a-b);
-    if(!starts.length||!ends.length) return "";
+    if(!starts.length || !ends.length) return "";
     return `${formatDate(starts[0])} – ${formatDate(ends[ends.length-1])}`;
   }
 }
@@ -263,6 +263,7 @@ function ensureBoughtGroundCherryEntry(){
 }
 let selectedCategory = "";
 let selectedEntryId = "";
+let showAllCalendar = false;
 
 function loadEntries(){
   const rawYear = localStorage.getItem(yearStorageKey());
@@ -270,11 +271,13 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v22.2026") ||
       localStorage.getItem("gartentagebuch.v21.2026") ||
       localStorage.getItem("gartentagebuch.v20.2026") ||
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v22") ||
       localStorage.getItem("gartentagebuch.v21") ||
       localStorage.getItem("gartentagebuch.v20") ||
       localStorage.getItem("gartentagebuch.v19") ||
@@ -521,17 +524,36 @@ function renderStats(){
 }
 
 function renderCalendar(){
-  const rangeDays = Number($("calendarRange").value || 90);
+  const rangeDays = Number($("calendarRange").value || 30);
   const today = startOfDay(new Date());
   const limit = addDays(today, rangeDays);
   const typeFilter = $("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
   const doneFilter = $("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
-  const events = buildCalendarEvents()
+  const allEvents = buildCalendarEvents();
+  const openCount = allEvents.filter(e=>!e.done).length;
+  const doneCount = allEvents.filter(e=>e.done).length;
+  const germCount = allEvents.filter(e=>e.type.toLowerCase().includes("keim")).length;
+  const bloomCount = allEvents.filter(e=>e.type.toLowerCase().includes("blüte")).length;
+  const harvestCount = allEvents.filter(e=>e.type.toLowerCase().includes("ernte")).length;
+  const plantableCount = allEvents.filter(e=>e.type.toLowerCase().includes("pflanzbar")).length;
+
+  const events = allEvents
     .filter(e=>e.date>=today && e.date<=limit)
     .filter(e=>!typeFilter || e.type.toLowerCase().includes(typeFilter.toLowerCase()))
     .filter(e=>!doneFilter || (doneFilter === "done" ? e.done : !e.done))
     .sort((a,b)=>a.date-b.date);
-  $("calendarTimeline").innerHTML = events.length ? events.map(e=>`
+
+  const visibleEvents = showAllCalendar ? events : events.slice(0,5);
+
+  $("calendarTimeline").innerHTML = `
+    <div class="calendar-summary">
+      <div><strong>${openCount}</strong> offene Termine</div>
+      <div><strong>${doneCount}</strong> erledigte Termine</div>
+      <div><strong>${allEvents.length}</strong> insgesamt</div>
+      <div class="calendar-breakdown">🌱 Keimung: ${germCount} · 🌸 Blüte: ${bloomCount} · 🥕 Ernte: ${harvestCount} · 📅 Pflanzbar: ${plantableCount}</div>
+      ${events.length > 5 && !showAllCalendar ? `<div class="meta">Es werden 5 von ${events.length} gefilterten Terminen angezeigt.</div>` : ""}
+    </div>
+  ` + (visibleEvents.length ? visibleEvents.map(e=>`
     <div class="timeline-item ${e.done ? "done-event" : ""}">
       <div class="timeline-date">${formatDate(e.date)}</div>
       <div>
@@ -540,7 +562,12 @@ function renderCalendar(){
         <span class="timeline-type">${escapeHtml(e.type)}</span>
         <label class="event-check"><input type="checkbox" data-event-done="${e.entryId}|${e.key}" ${e.done ? "checked" : ""}/> erledigt / passiert</label>
       </div>
-    </div>`).join("") : `<p class="meta">Noch keine Termine im Zeitraum. Trage ein Aussaat- oder Kaufdatum ein.</p>`;
+    </div>`).join("") : `<p class="meta">Noch keine Termine im Zeitraum. Trage ein Aussaat- oder Kaufdatum ein.</p>`);
+
+  if($("showAllCalendarBtn")){
+    $("showAllCalendarBtn").classList.toggle("hidden", events.length <= 5);
+    $("showAllCalendarBtn").textContent = showAllCalendar ? "Nur 5 anzeigen" : `Alle ${events.length} anzeigen`;
+  }
 
   document.querySelectorAll("[data-event-done]").forEach(cb=>{
     cb.onchange=()=>{
@@ -1206,9 +1233,10 @@ $("backupFileInput").onchange=(ev)=>{
   ev.target.value = "";
 };
 $("resetBtn").onclick=()=>{if(confirm("Startdaten neu laden? Deine lokalen Änderungen werden überschrieben.")){localStorage.removeItem(STORAGE_KEY); entries=parseSeedCsv(); saveEntries(); selectedCategory=""; selectedEntryId="";}};
-$("calendarRange").onchange=renderCalendar;
-$("calendarTypeFilter").onchange=renderCalendar;
-$("calendarDoneFilter").onchange=renderCalendar;
+$("calendarRange").onchange=()=>{showAllCalendar=false; renderCalendar();};
+$("calendarTypeFilter").onchange=()=>{showAllCalendar=false; renderCalendar();};
+$("calendarDoneFilter").onchange=()=>{showAllCalendar=false; renderCalendar();};
+if($("showAllCalendarBtn")) $("showAllCalendarBtn").onclick=()=>{showAllCalendar=!showAllCalendar; renderCalendar();};
 $("searchInput").oninput=()=>{if(selectedCategory) renderCategoryDetail(selectedCategory); else renderHome();};
 $("searchInput").onkeydown=(ev)=>{
   if(ev.key === "Enter"){

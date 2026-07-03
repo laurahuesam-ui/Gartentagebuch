@@ -12,7 +12,7 @@
 <header class="app-header">
   <div>
     <p class="eyebrow">Private PWA · lokale Datenbank</p>
-    <h1>Gartentagebuch <small class="version-tag">v22</small></h1>
+    <h1>Gartentagebuch <small class="version-tag">v23</small></h1>
   </div>
   <div class="header-actions menu-wrap">
     <button id="menuBtn" class="secondary" type="button">☰ Menü</button>
@@ -48,8 +48,8 @@
       </div>
       <div class="calendar-controls">
         <select id="calendarRange">
-          <option value="30">Nächste 30 Tage</option>
-          <option value="90" selected>Nächste 90 Tage</option>
+          <option value="30" selected>Nächste 30 Tage</option>
+          <option value="90">Nächste 90 Tage</option>
           <option value="180">Nächste 180 Tage</option>
           <option value="365">Ganzes Jahr</option>
         </select>
@@ -68,6 +68,7 @@
       </div>
     </div>
     <div id="calendarTimeline" class="timeline"></div>
+      <button id="showAllCalendarBtn" class="secondary hidden" type="button">Alle anzeigen</button>
   </section>
 
   <section id="catalogView" class="catalog-card hidden">

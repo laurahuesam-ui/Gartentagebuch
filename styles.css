@@ -57,3 +57,7 @@ font-size:.9rem;
 }
 
 .menu-label{font-weight:700;color:var(--text)}.menu-label select{margin-top:.25rem}
+
+#showAllCalendarBtn{margin-top:.75rem;width:100%}
+.calendar-summary{margin-bottom:1rem;padding:.75rem;border:1px solid var(--line);border-radius:12px;background:white}
+.calendar-breakdown{margin-top:.5rem;font-size:.9rem;color:var(--muted)}
