@@ -1,7 +1,11 @@
-# Gartentagebuch PWA v24
+# Gartentagebuch PWA v25
 
 Fix:
-- „Ertrag anpassen?“ öffnet jetzt ein Dialogfenster im App-Stil.
-- Kein Browser-Kästchen mehr.
-- Vorschlagswerte min/med/max können bearbeitet werden.
-- Gespeichert wird erst mit „Übernehmen“.
+- Neu aus der deploybaren v23 aufgebaut.
+- Ertragsanpassung ist jetzt ein Dialog im App-Stil.
+- Kein kaputtes Browser-Kästchen mehr.
+- JavaScript wurde mit node --check geprüft.
+- Oben steht v25 zur Kontrolle.
+
+Update:
+Alle Dateien in GitHub ersetzen und committen.
