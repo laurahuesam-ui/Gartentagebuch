@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v23";
-const YEAR_LIST_KEY = "gartentagebuch.years.v23";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v23";
+const STORAGE_KEY = "gartentagebuch.v24";
+const YEAR_LIST_KEY = "gartentagebuch.years.v24";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v24";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -271,12 +271,14 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v23.2026") ||
       localStorage.getItem("gartentagebuch.v22.2026") ||
       localStorage.getItem("gartentagebuch.v21.2026") ||
       localStorage.getItem("gartentagebuch.v20.2026") ||
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v23") ||
       localStorage.getItem("gartentagebuch.v22") ||
       localStorage.getItem("gartentagebuch.v21") ||
       localStorage.getItem("gartentagebuch.v20") ||
@@ -1002,6 +1004,41 @@ function suggestYieldAdjustment(entryId){
   }
 }
 
+function suggestYieldAdjustment(entryId){
+  const e=entries.find(x=>x.id===entryId);
+  if(!e) return;
+  if(!e.actualHarvestTotal || !e.aliveCount){
+    alert("Für einen Vorschlag brauche ich tatsächliche Ernte und lebende Pflanzen.");
+    return;
+  }
+  const actualPerPlant=e.actualHarvestTotal/e.aliveCount;
+  const suggestedMin=Math.max(0,Math.round(actualPerPlant*0.7*10)/10);
+  const suggestedMed=Math.max(0,Math.round(actualPerPlant*10)/10);
+  const suggestedMax=Math.max(0,Math.round(actualPerPlant*1.3*10)/10);
+
+  $("yieldPlantId").value=entryId;
+  $("yieldSuggestMin").value=suggestedMin;
+  $("yieldSuggestMed").value=suggestedMed;
+  $("yieldSuggestMax").value=suggestedMax;
+  $("yieldSummary").innerHTML=`
+    <div class="yield-summary-row"><span>Pflanze</span><strong>${escapeHtml(e.variety)}</strong></div>
+    <div class="yield-summary-row"><span>Bisher geerntet</span><strong>${Math.round(e.actualHarvestTotal)}</strong></div>
+    <div class="yield-summary-row"><span>Erntezeitraum</span><strong>${escapeHtml(e.harvestPeriod || "unbekannt")}</strong></div>
+    <div class="yield-summary-row"><span>Lebend</span><strong>${e.aliveCount}</strong></div>
+    <div class="yield-summary-row"><span>Aktuell min/med/max</span><strong>${e.yieldMin} / ${e.yieldMed} / ${e.yieldMax}</strong></div>`;
+  $("yieldDialog").showModal();
+}
+
+function saveYieldAdjustment(ev){
+  ev.preventDefault();
+  const e=entries.find(x=>x.id===$("yieldPlantId").value);
+  if(!e) return;
+  e.yieldMin=Number($("yieldSuggestMin").value||0);
+  e.yieldMed=Number($("yieldSuggestMed").value||0);
+  e.yieldMax=Number($("yieldSuggestMax").value||0);
+  $("yieldDialog").close();
+  saveEntries();
+}
 function exportBackup(){
   const backup = {
     app: "gartentagebuch-pwa",
@@ -1224,6 +1261,8 @@ $("cancelPlantBtn").onclick=()=>$("plantDialog").close();
 $("cancelHarvestBtn").onclick=()=>$("harvestDialog").close();
 $("plantForm").onsubmit=savePlantFromForm;
 $("harvestForm").onsubmit=saveHarvestFromForm;
+if($("yieldForm")) $("yieldForm").onsubmit=saveYieldAdjustment;
+if($("cancelYieldBtn")) $("cancelYieldBtn").onclick=()=>$("yieldDialog").close();
 $("exportCsvBtn").onclick=exportCsv;
 $("exportBackupBtn").onclick=exportBackup;
 $("importBackupBtn").onclick=()=>$("backupFileInput").click();

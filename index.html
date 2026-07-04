@@ -12,7 +12,7 @@
 <header class="app-header">
   <div>
     <p class="eyebrow">Private PWA · lokale Datenbank</p>
-    <h1>Gartentagebuch <small class="version-tag">v23</small></h1>
+    <h1>Gartentagebuch <small class="version-tag">v24</small></h1>
   </div>
   <div class="header-actions menu-wrap">
     <button id="menuBtn" class="secondary" type="button">☰ Menü</button>
@@ -282,6 +282,26 @@
       <button id="germinationOnlyDoneBtn" type="button" class="secondary">Nur abhaken</button>
       <button id="cancelGerminationBtn" type="button" class="secondary">Abbrechen</button>
       <button id="saveGerminationBtn" type="submit">Eintragen + abhaken</button>
+    </menu>
+  </form>
+</dialog>
+
+
+<dialog id="yieldDialog">
+  <form id="yieldForm">
+    <h2>Ertrag anpassen?</h2>
+    <input type="hidden" id="yieldPlantId" />
+    <div id="yieldSummary" class="yield-summary"></div>
+    <h3>Vorschlag je Pflanze</h3>
+    <div class="formgrid">
+      <label>Min <input id="yieldSuggestMin" type="number" min="0" step="0.1" /></label>
+      <label>Med <input id="yieldSuggestMed" type="number" min="0" step="0.1" /></label>
+      <label>Max <input id="yieldSuggestMax" type="number" min="0" step="0.1" /></label>
+    </div>
+    <p class="meta">Du kannst die Vorschlagswerte ändern. Gespeichert wird erst mit „Übernehmen“.</p>
+    <menu>
+      <button id="cancelYieldBtn" type="button" class="secondary">Abbrechen</button>
+      <button id="saveYieldBtn" type="submit">Übernehmen</button>
     </menu>
   </form>
 </dialog>

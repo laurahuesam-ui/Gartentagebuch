@@ -61,3 +61,8 @@ font-size:.9rem;
 #showAllCalendarBtn{margin-top:.75rem;width:100%}
 .calendar-summary{margin-bottom:1rem;padding:.75rem;border:1px solid var(--line);border-radius:12px;background:white}
 .calendar-breakdown{margin-top:.5rem;font-size:.9rem;color:var(--muted)}
+
+.yield-summary{display:grid;gap:.55rem;margin:1rem 0;padding:1rem;border:1px solid var(--line);border-radius:16px;background:white}
+.yield-summary-row{display:flex;justify-content:space-between;gap:1rem;border-bottom:1px solid var(--line);padding-bottom:.45rem}
+.yield-summary-row:last-child{border-bottom:0;padding-bottom:0}
+.yield-summary strong{color:var(--accent)}

@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v23 mit Saison-fertig Status und begrenztem Kalender.",
+  "description": "Gartentagebuch v24 mit schönem Ertragsanpassungs-Dialog.",
   "icons": [
     {
       "src": "icon.svg",
