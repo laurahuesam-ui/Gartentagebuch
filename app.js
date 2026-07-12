@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v25";
-const YEAR_LIST_KEY = "gartentagebuch.years.v25";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v25";
+const STORAGE_KEY = "gartentagebuch.v26";
+const YEAR_LIST_KEY = "gartentagebuch.years.v26";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v26";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -17,6 +17,36 @@ function updateYearSelect(){
 }
 
 const $ = id => document.getElementById(id);
+
+const COLLAPSE_KEY = "gartentagebuch.collapse.v26";
+function loadCollapseState(){
+  try { return JSON.parse(localStorage.getItem(COLLAPSE_KEY) || "{}"); }
+  catch { return {}; }
+}
+let collapseState = loadCollapseState();
+function saveCollapseState(){ localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapseState)); }
+function isGroupOpen(group){
+  if(collapseState[`group:${group}`] !== undefined) return Boolean(collapseState[`group:${group}`]);
+  return group === "active";
+}
+function isEntryOpen(entry){
+  const key=`entry:${entry.id}`;
+  if(collapseState[key] !== undefined) return Boolean(collapseState[key]);
+  return !(entry.seasonDone || Number(entry.aliveCount||0)===0);
+}
+function toggleGroup(group){
+  collapseState[`group:${group}`]=!isGroupOpen(group);
+  saveCollapseState();
+  renderCategoryDetail(selectedCategory);
+}
+function toggleEntry(entryId){
+  const e=entries.find(x=>x.id===entryId);
+  if(!e) return;
+  collapseState[`entry:${entryId}`]=!isEntryOpen(e);
+  saveCollapseState();
+  renderCategoryDetail(selectedCategory);
+}
+
 
 const MASTER_DATA_KEY = "gartentagebuch.masterData.v9";
 
@@ -223,6 +253,7 @@ ensureBoughtGroundCherryEntry();
 
 function normalizeEntryCategory(e){
   const guessed = guessCategory(e.variety || e.name || e.category || "");
+  if(e.category === "Sojabohne") e.category = "Bohne";
   if(guessed === "Erdbeer-Himbeer" || guessed === "Knoblauch") e.category = guessed;
   return e;
 }
@@ -271,6 +302,7 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v25.2026") ||
       localStorage.getItem("gartentagebuch.v24.2026") ||
       localStorage.getItem("gartentagebuch.v23.2026") ||
       localStorage.getItem("gartentagebuch.v22.2026") ||
@@ -279,6 +311,7 @@ function loadEntries(){
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v25") ||
       localStorage.getItem("gartentagebuch.v24") ||
       localStorage.getItem("gartentagebuch.v23") ||
       localStorage.getItem("gartentagebuch.v22") ||
@@ -376,7 +409,7 @@ function guessCategory(name){
   if(n.includes("spinat")) return "Spinat";
   if(n.includes("radieschen")) return "Radieschen";
   if(n.includes("karotten")) return "Karotte";
-  if(n.includes("sojabohne")) return "Sojabohne";
+  if(n.includes("sojabohne")) return "Bohne";
   if(n.includes("bohnen")) return "Bohne";
   if(n.includes("zucchini")) return "Zucchini";
   if(n.includes("rosmarin")) return "Rosmarin";
@@ -683,10 +716,73 @@ function renderHome(){
 }
 
 function renderCategoryDetail(category){
-  $("homeView").classList.add("hidden"); $("detailView").classList.remove("hidden");
-  const list = filteredEntries().filter(e=>e.category===category);
-  $("detailContent").innerHTML = `<h2>${escapeHtml(category)}</h2><p class="meta">Sorte/Aussaat öffnen für Details und Ernte.</p><div class="grid">${list.map(entryCard).join("")}</div>`;
-  document.querySelectorAll("[data-entry-id]").forEach(card=>card.onclick=()=>{selectedEntryId=card.dataset.entryId; renderDetail(selectedEntryId);});
+  $("homeView").classList.add("hidden");
+  $("detailView").classList.remove("hidden");
+  const list=filteredEntries().filter(e=>e.category===category);
+  $("detailContent").innerHTML=`<h2>${escapeHtml(category)}</h2><p class="meta">Aktive Pflanzen oben, abgeschlossene Pflanzen automatisch eingeklappt.</p>${renderGroupedEntries(list)}`;
+  bindGroupedEntryEvents();
+}
+
+
+function groupForEntry(e){
+  if(e.seasonDone) return "season";
+  if(Number(e.aliveCount||0)===0) return "dead";
+  return "active";
+}
+function groupTitle(group,count){
+  if(group==="active") return `🌱 Aktiv (${count})`;
+  if(group==="season") return `🌾 Saison beendet (${count})`;
+  return `☠ Keine lebenden Pflanzen (${count})`;
+}
+function compactLastHarvest(e){
+  if(!e.lastHarvest) return "keine Ernte";
+  return `${e.lastHarvest.amount} ${e.lastHarvest.unit} · ${new HarvestEntry(e.lastHarvest).displayDate}`;
+}
+function groupedEntryCard(e){
+  const open=isEntryOpen(e);
+  const status=e.seasonDone ? "Saison beendet" : Number(e.aliveCount||0)===0 ? "0 lebend" : `${e.aliveCount} lebend`;
+  return `<article class="card grouped-card ${e.seasonDone || Number(e.aliveCount||0)===0 ? "inactive-card" : ""}">
+    <button type="button" class="entry-toggle" data-toggle-entry="${e.id}">
+      <span>${open ? "▼" : "▶"} ${escapeHtml(e.variety)}</span>
+      <span class="status-badge">${escapeHtml(status)}</span>
+    </button>
+    <div class="compact-entry-summary">
+      <span>Geerntet: ${Math.round(e.actualHarvestTotal)}</span>
+      <span>Letzte Ernte: ${escapeHtml(compactLastHarvest(e))}</span>
+    </div>
+    <div class="${open ? "" : "hidden"} entry-expanded">
+      <div class="badges">
+        <span class="badge">gesät: ${e.sownCount}</span>
+        <span class="badge">lebend: ${e.aliveCount}</span>
+        <span class="badge">offen: ${Math.round(e.activeOpenHarvest)}</span>
+      </div>
+      <button type="button" data-open-entry="${e.id}">Details öffnen</button>
+    </div>
+  </article>`;
+}
+function renderGroupedEntries(list){
+  const groups={
+    active:list.filter(e=>groupForEntry(e)==="active"),
+    season:list.filter(e=>groupForEntry(e)==="season"),
+    dead:list.filter(e=>groupForEntry(e)==="dead")
+  };
+  return ["active","season","dead"].map(group=>{
+    const open=isGroupOpen(group);
+    const items=groups[group];
+    return `<section class="plant-group">
+      <button type="button" class="group-toggle" data-toggle-group="${group}">
+        ${open ? "▼" : "▶"} ${groupTitle(group,items.length)}
+      </button>
+      <div class="${open ? "" : "hidden"}">
+        ${items.length ? items.map(groupedEntryCard).join("") : `<p class="meta">Keine Einträge</p>`}
+      </div>
+    </section>`;
+  }).join("");
+}
+function bindGroupedEntryEvents(){
+  document.querySelectorAll("[data-toggle-group]").forEach(btn=>btn.onclick=()=>toggleGroup(btn.dataset.toggleGroup));
+  document.querySelectorAll("[data-toggle-entry]").forEach(btn=>btn.onclick=()=>toggleEntry(btn.dataset.toggleEntry));
+  document.querySelectorAll("[data-open-entry]").forEach(btn=>btn.onclick=()=>{selectedEntryId=btn.dataset.openEntry;renderDetail(selectedEntryId);});
 }
 
 function entryCard(e){

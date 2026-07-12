@@ -80,3 +80,13 @@ font-size:.9rem;
 }
 .yield-summary-row:last-child{border-bottom:0;padding-bottom:0}
 .yield-summary strong{color:var(--accent)}
+
+.plant-group{margin:1rem 0}
+.group-toggle,.entry-toggle{width:100%;display:flex;justify-content:space-between;align-items:center;gap:.75rem;text-align:left}
+.group-toggle{background:var(--card);color:var(--text);border:1px solid var(--line);box-shadow:var(--shadow);margin-bottom:.65rem}
+.grouped-card{cursor:default;margin-bottom:.7rem}
+.entry-toggle{background:transparent;color:var(--text);padding:0}
+.inactive-card{opacity:.82}
+.compact-entry-summary{display:flex;flex-wrap:wrap;gap:.45rem 1rem;margin-top:.6rem;color:var(--muted);font-size:.9rem}
+.entry-expanded{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)}
+.status-badge{border-radius:999px;padding:.25rem .55rem;font-size:.8rem;background:#ececec;color:#555}

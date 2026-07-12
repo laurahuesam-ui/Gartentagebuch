@@ -1,11 +1,9 @@
-# Gartentagebuch PWA v25
+# Gartentagebuch PWA v26
 
-Fix:
-- Neu aus der deploybaren v23 aufgebaut.
-- Ertragsanpassung ist jetzt ein Dialog im App-Stil.
-- Kein kaputtes Browser-Kästchen mehr.
-- JavaScript wurde mit node --check geprüft.
-- Oben steht v25 zur Kontrolle.
-
-Update:
-Alle Dateien in GitHub ersetzen und committen.
+Neu:
+- Gruppen: Aktiv, Saison beendet, Keine lebenden Pflanzen.
+- Saison beendet und 0 lebend sind standardmäßig eingeklappt.
+- Auf-/Zuklappen wird gespeichert.
+- Eingeklappte Karten zeigen Ernte und letzte Ernte.
+- Sojabohne wird unter Bohne einsortiert.
+- JavaScript wurde geprüft.
