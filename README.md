@@ -1,18 +1,8 @@
-# Gartentagebuch PWA v28
+# Gartentagebuch PWA v29
 
-Kalenderlogik:
-- Gekaufte Pflanzen haben keine Aussaat und keine Keimung.
-- Gekaufte Jungpflanze mit Kaufdatum:
-  Blüte/Ernte relativ zum Kaufdatum und verkürzter Restdauer.
-- Gekaufte Pflanze ohne Kaufdatum:
-  allgemeine Blüte- und Erntezeit aus Stammdaten.
-- Sträucher/Bäume/mehrjährige Pflanzen:
-  immer allgemeine Saison, unabhängig vom Kaufdatum.
-- Selbst gesät mit Aussaatdatum:
-  Keimung und Ernte relativ zur Aussaat.
-- Selbst gesät ohne Aussaatdatum:
-  Standard-Pflanzzeit als Basis.
-- Wenn auch keine Pflanzzeit ableitbar:
-  allgemeine Blüte- und Erntezeit aus Stammdaten.
-
-JavaScript wurde geprüft.
+Kalender-Fix:
+- „Nur erledigt“ zeigt auch bereits vergangene erledigte Termine.
+- Bei 0 lebend oder Saison fertig verschwinden offene und überfällige Keim-, Blüte- und Erntetermine.
+- Bereits vorher abgehakte Termine bleiben unter „Nur erledigt“ sichtbar.
+- „Noch pflanzbar“ bleibt weiterhin als Ausnahme sichtbar.
+- JavaScript wurde mit node --check geprüft.

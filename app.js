@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v28";
-const YEAR_LIST_KEY = "gartentagebuch.years.v28";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v28";
+const STORAGE_KEY = "gartentagebuch.v29";
+const YEAR_LIST_KEY = "gartentagebuch.years.v29";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v29";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -302,6 +302,7 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v28.2026") ||
       localStorage.getItem("gartentagebuch.v27.2026") ||
       localStorage.getItem("gartentagebuch.v26.2026") ||
       localStorage.getItem("gartentagebuch.v25.2026") ||
@@ -313,6 +314,7 @@ function loadEntries(){
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v28") ||
       localStorage.getItem("gartentagebuch.v27") ||
       localStorage.getItem("gartentagebuch.v26") ||
       localStorage.getItem("gartentagebuch.v25") ||
@@ -580,10 +582,25 @@ function renderCalendar(){
   const plantableCount=allEvents.filter(e=>e.type.toLowerCase().includes("pflanzbar")).length;
 
   const events=allEvents
-    // offene überfällige Termine anzeigen; erledigte nur im gewählten Zeitraum
-    .filter(e=>(!e.done && e.date<=limit) || (e.done && e.date>=today && e.date<=limit))
+    .filter(e=>{
+      // Bei „Nur erledigt“ alle erledigten Termine des Gartenjahres zeigen,
+      // auch wenn sie bereits vergangen sind.
+      if(doneFilter==="done") return e.done;
+
+      // Standard bzw. „Nur offen“:
+      // offene überfällige Termine plus offene Termine bis zum gewählten Horizont.
+      if(doneFilter==="open" || !doneFilter){
+        return !e.done && e.date<=limit;
+      }
+
+      return true;
+    })
     .filter(e=>!typeFilter || e.type.toLowerCase().includes(typeFilter.toLowerCase()))
-    .filter(e=>!doneFilter || (doneFilter==="done" ? e.done : !e.done))
+    .filter(e=>{
+      if(doneFilter==="done") return e.done;
+      if(doneFilter==="open") return !e.done;
+      return true;
+    })
     .sort((a,b)=>{
       const aOverdue=!a.done && a.date<today;
       const bOverdue=!b.done && b.date<today;
@@ -693,7 +710,7 @@ function buildCalendarEvents(){
       ));
     }
 
-    if(alive<=0 || e.seasonDone) continue;
+    const inactive = alive<=0 || e.seasonDone;
 
     const perennial=isPerennialSeasonPlant(e);
 
@@ -815,8 +832,22 @@ function buildCalendarEvents(){
       addSeasonalHarvestEvents(events,e);
     }
   }
+  return events.filter(event=>{
+    const entry=entries.find(e=>e.id===event.entryId);
+    if(!entry) return false;
 
-  return events;
+    const inactive=Number(entry.aliveCount||0)<=0 || entry.seasonDone;
+
+    // Kategoriebezogene Pflanzmöglichkeit bleibt als Ausnahme sichtbar.
+    if(event.type.toLowerCase().includes("pflanzbar")) return true;
+
+    // Aktive Pflanzen: alle relevanten Termine.
+    if(!inactive) return true;
+
+    // Tote/abgeschlossene Pflanzen: nur Termine behalten,
+    // die bereits vor dem Tod/Saisonende abgehakt wurden.
+    return event.done;
+  });
 }
 
 function defaultDateFromPlantingTime(text){
