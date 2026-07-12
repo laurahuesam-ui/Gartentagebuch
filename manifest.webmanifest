@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f6f3ea",
   "theme_color": "#4f7f52",
-  "description": "Gartentagebuch v27 mit vollständiger Kalenderableitung aus Stammdaten.",
+  "description": "Gartentagebuch v28 mit korrekter Kauf-/Aussaat-/Saisonlogik.",
   "icons": [
     {
       "src": "icon.svg",

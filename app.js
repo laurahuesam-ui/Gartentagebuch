@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v27";
-const YEAR_LIST_KEY = "gartentagebuch.years.v27";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v27";
+const STORAGE_KEY = "gartentagebuch.v28";
+const YEAR_LIST_KEY = "gartentagebuch.years.v28";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v28";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -302,6 +302,7 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v27.2026") ||
       localStorage.getItem("gartentagebuch.v26.2026") ||
       localStorage.getItem("gartentagebuch.v25.2026") ||
       localStorage.getItem("gartentagebuch.v24.2026") ||
@@ -312,6 +313,7 @@ function loadEntries(){
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v27") ||
       localStorage.getItem("gartentagebuch.v26") ||
       localStorage.getItem("gartentagebuch.v25") ||
       localStorage.getItem("gartentagebuch.v24") ||
@@ -631,6 +633,49 @@ function renderCalendar(){
   });
 }
 
+
+function isPerennialSeasonPlant(entry){
+  return ["Blaubeere","Himbeere","Brombeere","Erdbeer-Himbeer","Apfel","Birne","Erdbeere","Rosmarin","Schnittlauch"].includes(entry.category);
+}
+
+function addSeasonalBloomEvents(events,e){
+  const bloomStartDate=monthNameToDate(e.bloomStart);
+  const bloomEndDate=monthNameToDate(e.bloomEnd);
+  if(bloomStartDate){
+    events.push(makeEvent(
+      e,"bloomStart",bloomStartDate,"Blüte frühestens",
+      `${e.variety}: Blüte frühestens`,
+      `${e.bloomStart}${e.bloomEnd ? " bis "+e.bloomEnd : ""}`
+    ));
+  }
+  if(bloomEndDate && (!bloomStartDate || bloomEndDate.getTime()!==bloomStartDate.getTime())){
+    events.push(makeEvent(
+      e,"bloomEnd",bloomEndDate,"Blüte spätestens",
+      `${e.variety}: Blüte spätestens`,
+      `${e.bloomStart ? e.bloomStart+" bis " : ""}${e.bloomEnd}`
+    ));
+  }
+}
+
+function addSeasonalHarvestEvents(events,e){
+  const harvestStartDate=monthNameToDate(e.harvestSeasonStart);
+  const harvestEndDate=monthNameToDate(e.harvestSeasonEnd);
+  if(harvestStartDate){
+    events.push(makeEvent(
+      e,"harvestSeasonStart",harvestStartDate,"Ernte frühestens",
+      `${e.variety}: Erntezeit beginnt`,
+      `${e.harvestSeasonStart}${e.harvestSeasonEnd ? " bis "+e.harvestSeasonEnd : ""}`
+    ));
+  }
+  if(harvestEndDate && (!harvestStartDate || harvestEndDate.getTime()!==harvestStartDate.getTime())){
+    events.push(makeEvent(
+      e,"harvestSeasonEnd",harvestEndDate,"Ernte spätestens",
+      `${e.variety}: Erntezeit endet`,
+      `${e.harvestSeasonStart ? e.harvestSeasonStart+" bis " : ""}${e.harvestSeasonEnd}`
+    ));
+  }
+}
+
 function buildCalendarEvents(){
   const events=[];
   const plantingWindowSeen=new Set();
@@ -638,50 +683,93 @@ function buildCalendarEvents(){
   for(const e of entries){
     const alive=Number(e.aliveCount||0);
 
-    // "Noch pflanzbar" bleibt auch bei 0 lebend oder Saison fertig sichtbar.
     const plantUntil=plantingEndDateFromText(e.plantingTime);
     if(plantUntil && !plantingWindowSeen.has(e.category)){
       plantingWindowSeen.add(e.category);
       events.push(makeEvent(
-        e,
-        "plantingWindow",
-        plantUntil,
-        "Noch pflanzbar",
+        e,"plantingWindow",plantUntil,"Noch pflanzbar",
         `${e.category}: noch pflanzbar bis ${formatDate(plantUntil)}`,
         e.plantingTime || "Pflanzzeit"
       ));
     }
 
-    // Für tote oder abgeschlossene Pflanzen keine weiteren Entwicklungs-/Erntetermine.
     if(alive<=0 || e.seasonDone) continue;
 
-    // Basisdatum: echte Aussaat/Kauf; sonst Standard aus Pflanzzeit.
-    let baseDate=null;
+    const perennial=isPerennialSeasonPlant(e);
+
+    // GEKAUFT:
+    // keine Aussaat, keine Keimung.
     if(e.isBought){
-      baseDate=parseLocalDate(e.purchaseDate) || defaultDateFromPlantingTime(e.plantingTime);
-    } else {
-      baseDate=parseLocalDate(e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime);
+      const purchaseDate=parseLocalDate(e.purchaseDate);
+
+      // Sträucher/Bäume/mehrjährige Pflanzen immer nach normaler Saison.
+      if(perennial){
+        addSeasonalBloomEvents(events,e);
+        addSeasonalHarvestEvents(events,e);
+        continue;
+      }
+
+      // Gekaufte Jungpflanze mit Kaufdatum:
+      // Blüte/Ernte relativ zum Kaufdatum, wenn Restdauer vorhanden.
+      if(purchaseDate){
+        events.push(makeEvent(
+          e,"purchase",purchaseDate,"Kauf/Pflanzung",
+          e.variety,
+          `${e.category} · gekauft/gepflanzt`
+        ));
+
+        const bloomOffset=Math.max(0,Math.min(30,Number(e.harvestMinDays||0)-20));
+        if(bloomOffset>=0){
+          events.push(makeEvent(
+            e,"bloomBought",addDays(purchaseDate,bloomOffset),"Blüte",
+            `${e.variety}: Blüte`,
+            "gekaufte Jungpflanze, Entwicklungsstand berücksichtigt"
+          ));
+        }
+
+        if(Number(e.harvestMinDays||0)>0){
+          events.push(makeEvent(
+            e,"harvestMin",addDays(purchaseDate,Number(e.harvestMinDays)),
+            "Ernte frühestens",
+            `${e.variety}: Ernte frühestens`,
+            `ab Kauf/Pflanzung + ${e.harvestMinDays} Tage`
+          ));
+        } else {
+          addSeasonalHarvestEvents(events,e);
+        }
+
+        if(Number(e.harvestMaxDays||0)>0 && Number(e.harvestMaxDays)!==Number(e.harvestMinDays)){
+          events.push(makeEvent(
+            e,"harvestMax",addDays(purchaseDate,Number(e.harvestMaxDays)),
+            "Ernte spätestens",
+            `${e.variety}: Ernte spätestens`,
+            `ab Kauf/Pflanzung + ${e.harvestMaxDays} Tage`
+          ));
+        }
+      } else {
+        // Kein Kaufdatum: immer allgemeine Saison aus Stammdaten.
+        addSeasonalBloomEvents(events,e);
+        addSeasonalHarvestEvents(events,e);
+      }
+
+      continue;
     }
 
-    // Kauf-/Aussaatereignis wird intern weiter erzeugt, aber im Filter nicht extra angeboten.
+    // SELBST GESÄT:
+    // echtes Aussaatdatum, sonst Standarddatum aus Pflanzzeit.
+    const sowDate=parseLocalDate(e.sowingDate);
+    const baseDate=sowDate || defaultDateFromPlantingTime(e.plantingTime);
+
     if(baseDate){
       events.push(makeEvent(
-        e,
-        "base",
-        baseDate,
-        e.isBought ? "Kauf/Pflanzung" : (e.sowingEstimated ? "Aussaat ca." : "Aussaat"),
+        e,"base",baseDate,e.sowingEstimated ? "Aussaat ca." : "Aussaat",
         e.variety,
-        `${e.category} · ${e.sownCount} ${e.isBought ? "gekauft/gepflanzt" : "gesät/gepflanzt"}`
+        `${e.category} · ${e.sownCount} gesät/gepflanzt${!sowDate ? " · Standard aus Pflanzzeit" : ""}`
       ));
-    }
 
-    // Keimung: nur bei nicht gekauften Pflanzen und vorhandenen Keimdaten.
-    if(!e.isBought && baseDate){
       if(Number(e.germinationMinDays||0)>0){
         events.push(makeEvent(
-          e,
-          "germMin",
-          addDays(baseDate,Number(e.germinationMinDays)),
+          e,"germMin",addDays(baseDate,Number(e.germinationMinDays)),
           "Keimung frühestens",
           `${e.variety}: Keimung frühestens`,
           `nach ${e.germinationMinDays} Tagen`
@@ -689,89 +777,42 @@ function buildCalendarEvents(){
       }
       if(Number(e.germinationMaxDays||0)>0 && Number(e.germinationMaxDays)!==Number(e.germinationMinDays)){
         events.push(makeEvent(
-          e,
-          "germMax",
-          addDays(baseDate,Number(e.germinationMaxDays)),
+          e,"germMax",addDays(baseDate,Number(e.germinationMaxDays)),
           "Keimung spätestens",
           `${e.variety}: Keimung spätestens`,
           `nach ${e.germinationMaxDays} Tagen`
         ));
       }
-    }
 
-    // Blüte aus saisonalen Stammdaten.
-    const bloomStartDate=monthNameToDate(e.bloomStart);
-    const bloomEndDate=monthNameToDate(e.bloomEnd);
-    if(bloomStartDate){
-      events.push(makeEvent(
-        e,
-        "bloomStart",
-        bloomStartDate,
-        "Blüte frühestens",
-        `${e.variety}: Blüte frühestens`,
-        `${e.bloomStart}${e.bloomEnd ? " bis "+e.bloomEnd : ""}`
-      ));
-    }
-    if(bloomEndDate && (!bloomStartDate || bloomEndDate.getTime()!==bloomStartDate.getTime())){
-      events.push(makeEvent(
-        e,
-        "bloomEnd",
-        bloomEndDate,
-        "Blüte spätestens",
-        `${e.variety}: Blüte spätestens`,
-        `${e.bloomStart ? e.bloomStart+" bis " : ""}${e.bloomEnd}`
-      ));
-    }
+      addSeasonalBloomEvents(events,e);
 
-    // Ernte bevorzugt relativ zu Aussaat/Kaufdatum.
-    let relativeHarvestAdded=false;
-    if(baseDate && Number(e.harvestMinDays||0)>0){
-      events.push(makeEvent(
-        e,
-        "harvestMin",
-        addDays(baseDate,Number(e.harvestMinDays)),
-        "Ernte frühestens",
-        `${e.variety}: Ernte frühestens`,
-        `mittlerer Ertrag erwartet: ${Math.round(e.expectedMed)}`
-      ));
-      relativeHarvestAdded=true;
-    }
-    if(baseDate && Number(e.harvestMaxDays||0)>0 && Number(e.harvestMaxDays)!==Number(e.harvestMinDays)){
-      events.push(makeEvent(
-        e,
-        "harvestMax",
-        addDays(baseDate,Number(e.harvestMaxDays)),
-        "Ernte spätestens",
-        `${e.variety}: Ernte spätestens`,
-        `noch offen: ${Math.round(e.activeOpenHarvest)}`
-      ));
-      relativeHarvestAdded=true;
-    }
-
-    // Falls keine relative Ernte berechenbar ist: saisonale Erntezeit aus Stammdaten nutzen.
-    if(!relativeHarvestAdded){
-      const harvestStartDate=monthNameToDate(e.harvestSeasonStart);
-      const harvestEndDate=monthNameToDate(e.harvestSeasonEnd);
-      if(harvestStartDate){
+      let relativeHarvest=false;
+      if(Number(e.harvestMinDays||0)>0){
         events.push(makeEvent(
-          e,
-          "harvestSeasonStart",
-          harvestStartDate,
+          e,"harvestMin",addDays(baseDate,Number(e.harvestMinDays)),
           "Ernte frühestens",
-          `${e.variety}: Erntezeit beginnt`,
-          `${e.harvestSeasonStart}${e.harvestSeasonEnd ? " bis "+e.harvestSeasonEnd : ""}`
+          `${e.variety}: Ernte frühestens`,
+          `${sowDate ? "ab Aussaat" : "ab Standard-Pflanzzeit"} + ${e.harvestMinDays} Tage`
         ));
+        relativeHarvest=true;
       }
-      if(harvestEndDate && (!harvestStartDate || harvestEndDate.getTime()!==harvestStartDate.getTime())){
+      if(Number(e.harvestMaxDays||0)>0 && Number(e.harvestMaxDays)!==Number(e.harvestMinDays)){
         events.push(makeEvent(
-          e,
-          "harvestSeasonEnd",
-          harvestEndDate,
+          e,"harvestMax",addDays(baseDate,Number(e.harvestMaxDays)),
           "Ernte spätestens",
-          `${e.variety}: Erntezeit endet`,
-          `${e.harvestSeasonStart ? e.harvestSeasonStart+" bis " : ""}${e.harvestSeasonEnd}`
+          `${e.variety}: Ernte spätestens`,
+          `${sowDate ? "ab Aussaat" : "ab Standard-Pflanzzeit"} + ${e.harvestMaxDays} Tage`
         ));
+        relativeHarvest=true;
       }
+      if(!relativeHarvest){
+        addSeasonalHarvestEvents(events,e);
+      }
+    } else {
+      // Weder Aussaatdatum noch ableitbare Pflanzzeit:
+      // immer allgemeine Blüte-/Erntezeit nutzen.
+      addSeasonalBloomEvents(events,e);
+      addSeasonalHarvestEvents(events,e);
     }
   }
 

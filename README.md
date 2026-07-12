@@ -1,10 +1,18 @@
-# Gartentagebuch PWA v27
+# Gartentagebuch PWA v28
 
-Kalender-Fix:
-- Keimung wird aus Aussaatdatum bzw. Standard-Pflanzzeit + Keimdauer berechnet.
-- Blüte wird aus Blüte früh/spät der Stammdaten erzeugt.
-- Ernte wird aus Aussaat-/Kaufdatum + Erntetagen berechnet.
-- Wenn kein Datum vorhanden ist, wird die saisonale Erntezeit aus Stammdaten genutzt.
-- Offene vergangene Termine verschwinden nicht mehr, sondern werden als „überfällig“ angezeigt.
-- 0 lebend/Saison fertig: weiterhin nur „Noch pflanzbar“, keine Keim-/Blüte-/Ernteereignisse.
-- Kalender bleibt auf 30 Tage und 5 Einträge begrenzt.
+Kalenderlogik:
+- Gekaufte Pflanzen haben keine Aussaat und keine Keimung.
+- Gekaufte Jungpflanze mit Kaufdatum:
+  Blüte/Ernte relativ zum Kaufdatum und verkürzter Restdauer.
+- Gekaufte Pflanze ohne Kaufdatum:
+  allgemeine Blüte- und Erntezeit aus Stammdaten.
+- Sträucher/Bäume/mehrjährige Pflanzen:
+  immer allgemeine Saison, unabhängig vom Kaufdatum.
+- Selbst gesät mit Aussaatdatum:
+  Keimung und Ernte relativ zur Aussaat.
+- Selbst gesät ohne Aussaatdatum:
+  Standard-Pflanzzeit als Basis.
+- Wenn auch keine Pflanzzeit ableitbar:
+  allgemeine Blüte- und Erntezeit aus Stammdaten.
+
+JavaScript wurde geprüft.
