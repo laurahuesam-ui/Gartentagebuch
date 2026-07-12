@@ -90,3 +90,6 @@ font-size:.9rem;
 .compact-entry-summary{display:flex;flex-wrap:wrap;gap:.45rem 1rem;margin-top:.6rem;color:var(--muted);font-size:.9rem}
 .entry-expanded{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--line)}
 .status-badge{border-radius:999px;padding:.25rem .55rem;font-size:.8rem;background:#ececec;color:#555}
+
+.overdue-event{border-color:#d6a28f;background:#fffaf7}
+.overdue-label{font-size:.72rem;color:#a63b32;margin-top:.2rem;font-weight:700}

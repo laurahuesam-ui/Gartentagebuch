@@ -1,6 +1,6 @@
-const STORAGE_KEY = "gartentagebuch.v26";
-const YEAR_LIST_KEY = "gartentagebuch.years.v26";
-const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v26";
+const STORAGE_KEY = "gartentagebuch.v27";
+const YEAR_LIST_KEY = "gartentagebuch.years.v27";
+const CURRENT_YEAR_KEY = "gartentagebuch.currentYear.v27";
 let currentYear = localStorage.getItem(CURRENT_YEAR_KEY) || "2026";
 function yearStorageKey(year=currentYear){ return `${STORAGE_KEY}.${year}`; }
 function getYearList(){
@@ -302,6 +302,7 @@ function loadEntries(){
 
   if(currentYear === "2026"){
     const old =
+      localStorage.getItem("gartentagebuch.v26.2026") ||
       localStorage.getItem("gartentagebuch.v25.2026") ||
       localStorage.getItem("gartentagebuch.v24.2026") ||
       localStorage.getItem("gartentagebuch.v23.2026") ||
@@ -311,6 +312,7 @@ function loadEntries(){
       localStorage.getItem("gartentagebuch.v19.2026") ||
       localStorage.getItem("gartentagebuch.v18.2026") ||
       localStorage.getItem("gartentagebuch.v17.2026") ||
+      localStorage.getItem("gartentagebuch.v26") ||
       localStorage.getItem("gartentagebuch.v25") ||
       localStorage.getItem("gartentagebuch.v24") ||
       localStorage.getItem("gartentagebuch.v23") ||
@@ -561,59 +563,69 @@ function renderStats(){
 }
 
 function renderCalendar(){
-  const rangeDays = Number($("calendarRange").value || 30);
-  const today = startOfDay(new Date());
-  const limit = addDays(today, rangeDays);
-  const typeFilter = $("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
-  const doneFilter = $("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
-  const allEvents = buildCalendarEvents();
-  const openCount = allEvents.filter(e=>!e.done).length;
-  const doneCount = allEvents.filter(e=>e.done).length;
-  const germCount = allEvents.filter(e=>e.type.toLowerCase().includes("keim")).length;
-  const bloomCount = allEvents.filter(e=>e.type.toLowerCase().includes("blüte")).length;
-  const harvestCount = allEvents.filter(e=>e.type.toLowerCase().includes("ernte")).length;
-  const plantableCount = allEvents.filter(e=>e.type.toLowerCase().includes("pflanzbar")).length;
+  const rangeDays=Number($("calendarRange").value||30);
+  const today=startOfDay(new Date());
+  const limit=addDays(today,rangeDays);
+  const typeFilter=$("calendarTypeFilter") ? $("calendarTypeFilter").value : "";
+  const doneFilter=$("calendarDoneFilter") ? $("calendarDoneFilter").value : "";
 
-  const events = allEvents
-    .filter(e=>e.date>=today && e.date<=limit)
+  const allEvents=buildCalendarEvents();
+  const openCount=allEvents.filter(e=>!e.done).length;
+  const doneCount=allEvents.filter(e=>e.done).length;
+  const germCount=allEvents.filter(e=>e.type.toLowerCase().includes("keim")).length;
+  const bloomCount=allEvents.filter(e=>e.type.toLowerCase().includes("blüte")).length;
+  const harvestCount=allEvents.filter(e=>e.type.toLowerCase().includes("ernte")).length;
+  const plantableCount=allEvents.filter(e=>e.type.toLowerCase().includes("pflanzbar")).length;
+
+  const events=allEvents
+    // offene überfällige Termine anzeigen; erledigte nur im gewählten Zeitraum
+    .filter(e=>(!e.done && e.date<=limit) || (e.done && e.date>=today && e.date<=limit))
     .filter(e=>!typeFilter || e.type.toLowerCase().includes(typeFilter.toLowerCase()))
-    .filter(e=>!doneFilter || (doneFilter === "done" ? e.done : !e.done))
-    .sort((a,b)=>a.date-b.date);
+    .filter(e=>!doneFilter || (doneFilter==="done" ? e.done : !e.done))
+    .sort((a,b)=>{
+      const aOverdue=!a.done && a.date<today;
+      const bOverdue=!b.done && b.date<today;
+      if(aOverdue!==bOverdue) return aOverdue ? -1 : 1;
+      return a.date-b.date;
+    });
 
-  const visibleEvents = showAllCalendar ? events : events.slice(0,5);
+  const visibleEvents=showAllCalendar ? events : events.slice(0,5);
 
-  $("calendarTimeline").innerHTML = `
+  $("calendarTimeline").innerHTML=`
     <div class="calendar-summary">
       <div><strong>${openCount}</strong> offene Termine</div>
       <div><strong>${doneCount}</strong> erledigte Termine</div>
       <div><strong>${allEvents.length}</strong> insgesamt</div>
       <div class="calendar-breakdown">🌱 Keimung: ${germCount} · 🌸 Blüte: ${bloomCount} · 🥕 Ernte: ${harvestCount} · 📅 Pflanzbar: ${plantableCount}</div>
-      ${events.length > 5 && !showAllCalendar ? `<div class="meta">Es werden 5 von ${events.length} gefilterten Terminen angezeigt.</div>` : ""}
+      ${events.length>5 && !showAllCalendar ? `<div class="meta">Es werden 5 von ${events.length} gefilterten Terminen angezeigt.</div>` : ""}
     </div>
-  ` + (visibleEvents.length ? visibleEvents.map(e=>`
-    <div class="timeline-item ${e.done ? "done-event" : ""}">
-      <div class="timeline-date">${formatDate(e.date)}</div>
-      <div>
-        <div class="timeline-title">${escapeHtml(e.title)}</div>
-        <div class="meta">${escapeHtml(e.subtitle)}</div>
-        <span class="timeline-type">${escapeHtml(e.type)}</span>
-        <label class="event-check"><input type="checkbox" data-event-done="${e.entryId}|${e.key}" ${e.done ? "checked" : ""}/> erledigt / passiert</label>
-      </div>
-    </div>`).join("") : `<p class="meta">Noch keine Termine im Zeitraum. Trage ein Aussaat- oder Kaufdatum ein.</p>`);
+  ` + (visibleEvents.length ? visibleEvents.map(e=>{
+    const overdue=!e.done && e.date<today;
+    return `
+      <div class="timeline-item ${e.done ? "done-event" : ""} ${overdue ? "overdue-event" : ""}">
+        <div class="timeline-date">${formatDate(e.date)}${overdue ? `<div class="overdue-label">überfällig</div>` : ""}</div>
+        <div>
+          <div class="timeline-title">${escapeHtml(e.title)}</div>
+          <div class="meta">${escapeHtml(e.subtitle)}</div>
+          <span class="timeline-type">${escapeHtml(e.type)}</span>
+          <label class="event-check"><input type="checkbox" data-event-done="${e.entryId}|${e.key}" ${e.done ? "checked" : ""}/> erledigt / passiert</label>
+        </div>
+      </div>`;
+  }).join("") : `<p class="meta">Keine Termine für die aktuellen Filter vorhanden.</p>`);
 
   if($("showAllCalendarBtn")){
-    $("showAllCalendarBtn").classList.toggle("hidden", events.length <= 5);
-    $("showAllCalendarBtn").textContent = showAllCalendar ? "Nur 5 anzeigen" : `Alle ${events.length} anzeigen`;
+    $("showAllCalendarBtn").classList.toggle("hidden",events.length<=5);
+    $("showAllCalendarBtn").textContent=showAllCalendar ? "Nur 5 anzeigen" : `Alle ${events.length} anzeigen`;
   }
 
   document.querySelectorAll("[data-event-done]").forEach(cb=>{
     cb.onchange=()=>{
-      const [entryId, key] = cb.dataset.eventDone.split("|");
+      const [entryId,key]=cb.dataset.eventDone.split("|");
       if(cb.checked && key.startsWith("germ")){
-        cb.checked = false;
-        openGerminationDialog(entryId, key);
+        cb.checked=false;
+        openGerminationDialog(entryId,key);
       } else {
-        toggleEventDone(entryId, key, cb.checked);
+        toggleEventDone(entryId,key,cb.checked);
       }
     };
   });
@@ -621,32 +633,148 @@ function renderCalendar(){
 
 function buildCalendarEvents(){
   const events=[];
-  const plantingWindowSeen = new Set();
+  const plantingWindowSeen=new Set();
+
   for(const e of entries){
-    const baseDate = e.isBought ? (parseLocalDate(e.purchaseDate || e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime)) : (parseLocalDate(e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime));
-    const plantUntilOnly = plantingEndDateFromText(e.plantingTime);
-    if(plantUntilOnly && !e.doneEvents?.plantingWindow && !plantingWindowSeen.has(e.category)){
+    const alive=Number(e.aliveCount||0);
+
+    // "Noch pflanzbar" bleibt auch bei 0 lebend oder Saison fertig sichtbar.
+    const plantUntil=plantingEndDateFromText(e.plantingTime);
+    if(plantUntil && !plantingWindowSeen.has(e.category)){
       plantingWindowSeen.add(e.category);
-      events.push(makeEvent(e, "plantingWindow", plantUntilOnly, "Noch pflanzbar", `${e.category}: noch pflanzbar bis ${formatDate(plantUntilOnly)}`, e.plantingTime || "Pflanzzeit"));
+      events.push(makeEvent(
+        e,
+        "plantingWindow",
+        plantUntil,
+        "Noch pflanzbar",
+        `${e.category}: noch pflanzbar bis ${formatDate(plantUntil)}`,
+        e.plantingTime || "Pflanzzeit"
+      ));
     }
-    const alive = Number(e.aliveCount || 0);
 
-    if(alive <= 0 || e.seasonDone){
-      continue;
+    // Für tote oder abgeschlossene Pflanzen keine weiteren Entwicklungs-/Erntetermine.
+    if(alive<=0 || e.seasonDone) continue;
+
+    // Basisdatum: echte Aussaat/Kauf; sonst Standard aus Pflanzzeit.
+    let baseDate=null;
+    if(e.isBought){
+      baseDate=parseLocalDate(e.purchaseDate) || defaultDateFromPlantingTime(e.plantingTime);
+    } else {
+      baseDate=parseLocalDate(e.sowingDate) || defaultDateFromPlantingTime(e.plantingTime);
     }
 
-    if(!baseDate) continue;
-    events.push(makeEvent(e, "base", baseDate, e.isBought ? "Kauf/Pflanzung" : (e.sowingEstimated ? "Aussaat ca." : "Aussaat"), `${e.variety}`, `${e.category} · ${e.sownCount} ${e.isBought ? "gekauft/gepflanzt" : "gesät/gepflanzt"}${e.sowingEstimated ? " · geschätzt" : ""}`));
-    const bloomStartDate = monthNameToDate(e.bloomStart);
-    const bloomEndDate = monthNameToDate(e.bloomEnd);
-    if(bloomStartDate) events.push(makeEvent(e, "bloomStart", bloomStartDate, "Blüte frühestens", `${e.variety}: Blüte frühestens`, `${e.bloomStart}${e.bloomEnd ? " bis " + e.bloomEnd : ""}`));
-    if(bloomEndDate && e.bloomEnd !== e.bloomStart) events.push(makeEvent(e, "bloomEnd", bloomEndDate, "Blüte spätestens", `${e.variety}: Blüte spätestens`, `${e.bloomStart ? e.bloomStart + " bis " : ""}${e.bloomEnd}`));
+    // Kauf-/Aussaatereignis wird intern weiter erzeugt, aber im Filter nicht extra angeboten.
+    if(baseDate){
+      events.push(makeEvent(
+        e,
+        "base",
+        baseDate,
+        e.isBought ? "Kauf/Pflanzung" : (e.sowingEstimated ? "Aussaat ca." : "Aussaat"),
+        e.variety,
+        `${e.category} · ${e.sownCount} ${e.isBought ? "gekauft/gepflanzt" : "gesät/gepflanzt"}`
+      ));
+    }
 
-    if(!e.isBought && e.germinationMinDays) events.push(makeEvent(e, "germMin", addDays(baseDate,e.germinationMinDays), "Keimung frühestens", `${e.variety}: Keimlinge frühestens`, `nach ${e.germinationMinDays} Tagen`));
-    if(!e.isBought && e.germinationMaxDays && e.germinationMaxDays!==e.germinationMinDays) events.push(makeEvent(e, "germMax", addDays(baseDate,e.germinationMaxDays), "Keimung spätestens", `${e.variety}: Keimlinge spätestens`, `nach ${e.germinationMaxDays} Tagen`));
-    if(e.harvestMinDays) events.push(makeEvent(e, "harvestMin", addDays(baseDate,e.harvestMinDays), "Ernte frühestens", `${e.variety}: Ernte frühestens`, `med erwartet: ${Math.round(e.expectedMed)}`));
-    if(e.harvestMaxDays && e.harvestMaxDays!==e.harvestMinDays) events.push(makeEvent(e, "harvestMax", addDays(baseDate,e.harvestMaxDays), "Ernte spätestens", `${e.variety}: Ernte spätestens`, `offen med: ${Math.round(e.activeOpenHarvest)}`));
+    // Keimung: nur bei nicht gekauften Pflanzen und vorhandenen Keimdaten.
+    if(!e.isBought && baseDate){
+      if(Number(e.germinationMinDays||0)>0){
+        events.push(makeEvent(
+          e,
+          "germMin",
+          addDays(baseDate,Number(e.germinationMinDays)),
+          "Keimung frühestens",
+          `${e.variety}: Keimung frühestens`,
+          `nach ${e.germinationMinDays} Tagen`
+        ));
+      }
+      if(Number(e.germinationMaxDays||0)>0 && Number(e.germinationMaxDays)!==Number(e.germinationMinDays)){
+        events.push(makeEvent(
+          e,
+          "germMax",
+          addDays(baseDate,Number(e.germinationMaxDays)),
+          "Keimung spätestens",
+          `${e.variety}: Keimung spätestens`,
+          `nach ${e.germinationMaxDays} Tagen`
+        ));
+      }
+    }
+
+    // Blüte aus saisonalen Stammdaten.
+    const bloomStartDate=monthNameToDate(e.bloomStart);
+    const bloomEndDate=monthNameToDate(e.bloomEnd);
+    if(bloomStartDate){
+      events.push(makeEvent(
+        e,
+        "bloomStart",
+        bloomStartDate,
+        "Blüte frühestens",
+        `${e.variety}: Blüte frühestens`,
+        `${e.bloomStart}${e.bloomEnd ? " bis "+e.bloomEnd : ""}`
+      ));
+    }
+    if(bloomEndDate && (!bloomStartDate || bloomEndDate.getTime()!==bloomStartDate.getTime())){
+      events.push(makeEvent(
+        e,
+        "bloomEnd",
+        bloomEndDate,
+        "Blüte spätestens",
+        `${e.variety}: Blüte spätestens`,
+        `${e.bloomStart ? e.bloomStart+" bis " : ""}${e.bloomEnd}`
+      ));
+    }
+
+    // Ernte bevorzugt relativ zu Aussaat/Kaufdatum.
+    let relativeHarvestAdded=false;
+    if(baseDate && Number(e.harvestMinDays||0)>0){
+      events.push(makeEvent(
+        e,
+        "harvestMin",
+        addDays(baseDate,Number(e.harvestMinDays)),
+        "Ernte frühestens",
+        `${e.variety}: Ernte frühestens`,
+        `mittlerer Ertrag erwartet: ${Math.round(e.expectedMed)}`
+      ));
+      relativeHarvestAdded=true;
+    }
+    if(baseDate && Number(e.harvestMaxDays||0)>0 && Number(e.harvestMaxDays)!==Number(e.harvestMinDays)){
+      events.push(makeEvent(
+        e,
+        "harvestMax",
+        addDays(baseDate,Number(e.harvestMaxDays)),
+        "Ernte spätestens",
+        `${e.variety}: Ernte spätestens`,
+        `noch offen: ${Math.round(e.activeOpenHarvest)}`
+      ));
+      relativeHarvestAdded=true;
+    }
+
+    // Falls keine relative Ernte berechenbar ist: saisonale Erntezeit aus Stammdaten nutzen.
+    if(!relativeHarvestAdded){
+      const harvestStartDate=monthNameToDate(e.harvestSeasonStart);
+      const harvestEndDate=monthNameToDate(e.harvestSeasonEnd);
+      if(harvestStartDate){
+        events.push(makeEvent(
+          e,
+          "harvestSeasonStart",
+          harvestStartDate,
+          "Ernte frühestens",
+          `${e.variety}: Erntezeit beginnt`,
+          `${e.harvestSeasonStart}${e.harvestSeasonEnd ? " bis "+e.harvestSeasonEnd : ""}`
+        ));
+      }
+      if(harvestEndDate && (!harvestStartDate || harvestEndDate.getTime()!==harvestStartDate.getTime())){
+        events.push(makeEvent(
+          e,
+          "harvestSeasonEnd",
+          harvestEndDate,
+          "Ernte spätestens",
+          `${e.variety}: Erntezeit endet`,
+          `${e.harvestSeasonStart ? e.harvestSeasonStart+" bis " : ""}${e.harvestSeasonEnd}`
+        ));
+      }
+    }
   }
+
   return events;
 }
 
